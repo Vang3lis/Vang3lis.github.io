@@ -13,8 +13,7 @@ layout: about
 ## 👨‍💻 博主是谁
 
 Vang3lis
-本科 BIT 之后会继续做点研究
-CTFer 在CTF比赛中喜欢做 pwn 题 （但是我很菜
+菜鸡，摸鱼，快乐
 
 ## ⛹ 兴趣爱好
 
