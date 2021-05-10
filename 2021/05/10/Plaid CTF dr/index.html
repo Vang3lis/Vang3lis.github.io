@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Vang3lis">
+  <meta name="keywords" content="">
+  <title>Plaid CTF dr - Vang3lis&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_6peoq002giu.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>0x13</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+  <div class="mt-3 post-meta">
+    <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+    <time datetime="2021-05-10 15:48" pubdate>
+      2021年5月10日 下午
+    </time>
+  </div>
+
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Plaid CTF dr</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <p>打比赛的时候，后面一直在看<code>dr</code>这个题，把大概逻辑逆清楚（<del>后来发现逆向一点用都没，感觉还不如猜呢，tcl，rust逆的很慢</del>），一开始觉得有点类似自动机，后面发现是正则之后，巨神两个小时就秒了（tql</p>
+<p>拖了很久才来复现，稍微记录一下，免得之后忘记了</p>
+<h2 id="程序逻辑"><a href="#程序逻辑" class="headerlink" title="程序逻辑"></a>程序逻辑</h2><p> 虽然是 rust 写的，但是程序逻辑比较简单，可以分为三部分，前面第一部分和第三部分都是定死的字符串 “3” 和 “yes”</p>
+<p>第二部分输入的时候会出现一些奇怪的东西，到后面可以发现第二部分算是第四部分的提示</p>
+<p>第二部分输入的是症状，第四部分是输入key，输入症状时，会出现类似自动机吃字符然后出现状态转换的提示，在这部分可以猜到一些最基本的符号表示，同时不同的症状需要的治病的费用不同，对后续的第四部分也会造成影响</p>
+<p>第四部分输入key之后，会进行接受，并在最后将输入的内容和写在bss段的字符列表进行处理之后得到flag</p>
+<h2 id="正则分析"><a href="#正则分析" class="headerlink" title="正则分析"></a>正则分析</h2><p>通过猜名字和对于不同的输入和提示的返回可以得到以下的分析结果</p>
+<pre><code class="hljs"><span class="hljs-attribute">And</span>: 满足Res中所有的要求
+<span class="hljs-attribute">Alt</span>: 满足Res中其中一个要求
+<span class="hljs-attribute">Seq</span>: 正则需要满足的序列
+<span class="hljs-attribute">Lit</span>: 一个一个匹配，字面量
+<span class="hljs-attribute">Res</span>: 数组
+<span class="hljs-attribute">Star</span>: 匹配0个或者多个
+<span class="hljs-attribute">Eps</span>: epsilon
+
+<span class="hljs-attribute">Neg(Null)</span>: 匹配任意长度的
+
+<span class="hljs-attribute">Neg:</span>
+    10c -&gt; 10ca
+    Neg( ... Alt(Res([Lit(&quot;af&quot;)])) ...) -&gt; Neg( ... Alt(Res([Lit(&quot;f&quot;)])) ... )
+    应该是禁止出现 af 的意思
+    
+    尝试 10caf 也失效了
+
+<span class="hljs-attribute">Consider</span>: 
+    1: 1,7777,73331         0*16+1
+    10: 16,7777,73331       (0*16+1)*16+0    
+    100: 256,7777,73331     ((0*16+1)*16+0)*16+0
+    10c: 268,7777,73331     ((0*16+1)*16+0)*16+0xc
+    %733331
+
+    相当于 Consider(Res([])) 的个数进制
+
+<span class="hljs-attribute">Moon</span>: 
+    1: Moon([0-9],2,3), Moon([a-f],2,3), Moon( (([0-9],1,3), ([a-f],2,3)), 1, 2)
+    10: Moon([0-9],3,3), Moon([a-f],2,3), Moon( (([0-9],1,3), ([a-f],2,3)), 1, 2)
+    100: Moon([0-9],1,3), Moon([a-f],2,3), Moon( (([0-9],1,3), ([a-f],2,3)), 1, 2)
+    10c: Moon([a-f],3,3), Moon( (([0-9],1,3), ([a-f],2,3)), 1, 2)
+    
+    相当于在算个数，如果个数相等了，这个 Moon 可以结束进入下一个
+
+    100c 这个c就吃不进去，因为第一项是 Moon([0-9], 1, 3)
+
+<span class="hljs-attribute">Fan:</span>
+    10: Neg(.. Fan([a-f], 6) ..)
+    10b: Neg(.. Fan([a-f], 5) ..)
+    倒数计数</code></pre>
+
+
+
+<h2 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h2><p>最后对照输入<code>1</code>之后的正则提示，可以分析得到以下的结果</p>
+<pre><code class="hljs lsl"><span class="hljs-number">1.</span> Neg(Null) + Consider( [bcd], Lit(<span class="hljs-string">&quot;cdb&quot;</span>)+Neg(bd) ], <span class="hljs-number">0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)  字符串 []cdb 或者 cdb[] 且不能为 cdbb cdbd
+<span class="hljs-number">2.</span> *[<span class="hljs-number">1</span><span class="hljs-number">-3</span>] + (*[<span class="hljs-number">3</span><span class="hljs-number">-7</span>] + Neg(Null))                                
+<span class="hljs-number">3.</span> Consider( [<span class="hljs-number">05</span>a], [<span class="hljs-number">16</span>b], [<span class="hljs-number">27</span>cf], [<span class="hljs-number">38</span>dx], [<span class="hljs-number">49</span>e], <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">7</span> )     算法需要 最后 %<span class="hljs-number">7</span> == <span class="hljs-number">0</span>
+<span class="hljs-number">4.</span> Moon([<span class="hljs-number">0</span><span class="hljs-number">-9</span>], <span class="hljs-number">1</span>, <span class="hljs-number">3</span>) + Moon([a-f], <span class="hljs-number">2</span>, <span class="hljs-number">3</span>) + Moon( Moon([<span class="hljs-number">0</span><span class="hljs-number">-9</span>], <span class="hljs-number">1</span>, <span class="hljs-number">3</span>), Moon([a-f], <span class="hljs-number">2</span>, <span class="hljs-number">3</span>), <span class="hljs-number">1</span>, <span class="hljs-number">2</span>)    需要 数字(<span class="hljs-number">2</span> <span class="hljs-number">5</span> <span class="hljs-number">8.</span>..)+字符(<span class="hljs-number">1</span> <span class="hljs-number">4</span> <span class="hljs-number">7.</span>..)+数字(<span class="hljs-number">2</span> <span class="hljs-number">5</span> <span class="hljs-number">8.</span>..)+字符(<span class="hljs-number">1</span> <span class="hljs-number">4</span> <span class="hljs-number">7.</span>..) 
+<span class="hljs-number">5.</span> Moon(Lit(<span class="hljs-string">&quot;10&quot;</span>), <span class="hljs-number">0</span>, <span class="hljs-number">3</span>)                                        <span class="hljs-number">10</span>需要出现<span class="hljs-number">3</span>次
+<span class="hljs-number">6.</span> Neg( Alt( Lit(<span class="hljs-string">&quot;af&quot;</span>), Lit(<span class="hljs-string">&quot;73&quot;</span>), 数字+Lit(<span class="hljs-string">&quot;a&quot;</span>), Lit(<span class="hljs-string">&quot;ccc&quot;</span>), Fan([<span class="hljs-number">0</span><span class="hljs-number">-9</span>], <span class="hljs-number">7</span>) )  )          af <span class="hljs-number">73</span> 数字+a ccc 都不能出现 数字也不能连续超过<span class="hljs-number">7</span>个
+   Neg( Alt( Lit(<span class="hljs-string">&quot;a&quot;</span>), Fan([<span class="hljs-number">0</span><span class="hljs-number">-9</span>], <span class="hljs-number">6</span>)))                   		a 不能出现 数字不能连续超过<span class="hljs-number">6</span>个
+<span class="hljs-number">7.</span> Neg( Neg(Null) + Fan([a-f]+Neg(Null), <span class="hljs-number">6</span>))                                    字母不能超过<span class="hljs-number">6</span>个
+<span class="hljs-number">8.</span> Consider(<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>,<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">8</span>,<span class="hljs-number">9</span>,a,b,c,d,e,f, <span class="hljs-number">0</span>,<span class="hljs-number">7777</span>,<span class="hljs-number">73331</span>)</code></pre>
+
+
+
+<h2 id="大致推测"><a href="#大致推测" class="headerlink" title="大致推测"></a>大致推测</h2><p>1 4 7得 <code>cdb</code> 的串长度只能为 4且只能为 <code>[b-f]cdb | cdb[cef]</code></p>
+<p>主要4可以知道基本上是<code>数字+字符+数字+字符</code>的模式，又字符不能超过6个且连续的字符必须是1或者4个，因此要么是<code>1+4</code>要么是<code>4+1</code></p>
+<p>再判断一下数字只能是<code>2+2 | 2+5 | 5+2 | 5+5</code>，又需要出现三次<code>10</code>，因此只能<code>[1010x|10x10|10] + [10xxx|x10xx|xx10x|xxx10]</code>或者这两个的顺序可以反过来即前面是一个<code>10</code>后面是两个<code>10</code></p>
+<p> 因此<code>(a, b, c, d)</code>中</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">a</span>: <span class="hljs-number">1010</span>x | <span class="hljs-number">10</span>x<span class="hljs-number">10</span> | <span class="hljs-number">10</span>
+<span class="hljs-attribute">b</span>:<span class="hljs-meta"> [b-f]cdb | cbd[cef]</span>
+<span class="hljs-attribute">c</span>: <span class="hljs-number">10</span>xxx | x<span class="hljs-number">10</span>xx | xx<span class="hljs-number">10</span>x | xxx<span class="hljs-number">10</span>
+<span class="hljs-attribute">d</span>: bcd</code></pre>
+
+<p>且<code>a c</code>可交换，<code>b d</code>可交换，然后必须要<code>10</code>开头，必须要3个<code>10</code>，不能出现<code>73</code>，且两个<code>Consider</code>需要满足</p>
+<p>因此可以写出脚本爆破，最后可以得到一堆可能的解</p>
+<p>最后可行的结果</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">cough</span>
+<span class="hljs-attribute">10174cdbf10810c</span>
+
+<span class="hljs-attribute">PCTF</span>&#123;a_pr<span class="hljs-number">1</span>m<span class="hljs-number">3</span>_a_day_k<span class="hljs-number">33</span>ps_th<span class="hljs-number">3</span>_D<span class="hljs-number">0</span>ctor_Firmly_Away&#125;</code></pre>
+
+
+
+<p>附上题目和脚本 <a target="_blank" rel="noopener" href="https://github.com/Vang3lis/CTF_repo/tree/master/PlaidCTF_2021/dr">dr</a></p>
+<p>我的脚本写的十分的暴力（无限套for循环），巨神写的就很简单</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/CTF/">CTF</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/re/">re</a>
+                    
+                      <a class="hover-with-bg" href="/tags/reg/">reg</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/09/02/qwblogin%20&amp;%20GACTF%20vmpwn/">
+                        <span class="hidden-mobile">QWBlogin & GACTF vmpwn</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Plaid CTF dr&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
