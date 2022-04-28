@@ -1,0 +1,1370 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Vang3lis">
+  <meta name="keywords" content="">
+  <title>Fuzzing Like A Caveman 翻译 - Vang3lis&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_6peoq002giu.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>0x13</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+  <div class="mt-3 post-meta">
+    <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+    <time datetime="2022-03-29 09:28" pubdate>
+      2022年3月29日 上午
+    </time>
+  </div>
+
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      8.7k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      131
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Fuzzing Like A Caveman 翻译</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <p>原文为 <a target="_blank" rel="noopener" href="https://h0mbre.github.io/Fuzzing-Like-A-Caveman">Fuzzing-Like-A-Caveman</a>，本文章仅为个人理解的翻译和备份</p>
+<p>[toc]</p>
+<h2 id="Intoduction"><a href="#Intoduction" class="headerlink" title="Intoduction"></a>Intoduction</h2><p>在过去的几个月里，我一直在被动地消化大量与模糊测试相关的材料，因为我主要尝试将我的<code>Windows exploitation game</code>从<code>Noob-level</code>提高到<code>1%-Less-Noob-Level</code>，而且我发现它相当的迷人，在这篇文章中，我将向你们展示如何创建一个非常简单变异的<code>fuzzer</code>，希望我们可以利用这个<code>fuzzer</code>在一些开源项目中找到一些<code>crashes</code>。</p>
+<p>我们将创建的这个<code>fuzzer</code>是跟随着 <a target="_blank" rel="noopener" href="https://twitter.com/gynvael?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor">@gynvael’s fuzzing tutorial on YouTube</a>实现的，我不知道<code>Gynvael</code>有视频，所以现在我有几十个小时的内容可以添加到无止尽的<code>watch/read</code>列表中。</p>
+<p>我也必须要说<a target="_blank" rel="noopener" href="https://www.youtube.com/user/gamozolabs/videos">Brandon Faulk’s fuzzing streams</a>是非常好的，虽然我不能理解近乎<code>99%</code>的<code>Brandon says</code>所说的事情，但是这些视频的内容是吸引人的，到目前为止，我个人最喜欢的是他对<code>calc.exe</code>和<code>c-tags</code>的<code>fuzzing</code>，他也有一个关于<code>fuzzing</code>概念特别好的介绍的视频：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=SngK4W4tVc0">NYU Fuzzing Talk</a></p>
+<h2 id="Picking-a-Target"><a href="#Picking-a-Target" class="headerlink" title="Picking a Target"></a>Picking a Target</h2><p>我想找一个用<code>C</code>或者<code>C++</code>写的从文件中解析数据的<code>binary</code>，我最先找到的其中一个就是从<code>images</code>中解析<code>Exif</code>数据的<code>binaries</code>，我们也想选一个几乎没有安全隐患的目标，因为我们将会实时的公布这些发现。</p>
+<p>从<a target="_blank" rel="noopener" href="https://www.media.mit.edu/pia/Research/deepview/exif.html">exif</a>可知，基本上，<code>Exif</code>文件格式是跟<code>JPEG</code>文件格式是相同的，<code>Exif</code>插入一些<code>image/digicam</code>信息数据和缩略图 (<code>thumbnail image</code>) 到<code>JPEG</code>中以符合<code>JPEG</code>的规范，因此你可以通过<code>JEPG</code>兼容的浏览器/图片查看器/图片修饰软件等查看<code>Exif</code>格式的文件，就像通常查看<code>JPEG</code>文件一样。</p>
+<p>因此，<code>Exif</code>可将元数据类型插入到符合<code>JPEG</code>规范的文件中，并且市面上存在不少有助于解析这些数据的<code>programs/utilities</code>。</p>
+<h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><p>我们将用<code>Python3</code>去构建一个初级的变异的<code>fuzzer</code>，巧妙地（或者不那么巧妙地）改变合规的<code>Exif-filled</code>的<code>JPEGs</code>，并将它们喂给解析器希望能得到<code>crash</code>，我们还将开发<code>x86 Kali Linux</code>发行版。</p>
+<p>首先，我们需要一个合规的<code>Exif-filled</code>的<code>JPEG</code>，谷歌搜素<code>Sample JPEG with Exif</code>就有助于我们找到这个<a target="_blank" rel="noopener" href="https://github.com/ianare/exif-samples/tree/master/jpg">repo</a>，我将会用<code>Canon_40D.jpg</code>用于测试。</p>
+<h2 id="Getting-to-Know-the-JPEG-and-EXIF-Spec"><a href="#Getting-to-Know-the-JPEG-and-EXIF-Spec" class="headerlink" title="Getting to Know the JPEG and EXIF Spec"></a>Getting to Know the JPEG and EXIF Spec</h2><p>在我们将<code>Python</code>写入<code>Sublime Text</code>之前，让我们首先花一点来了解<code>JPEG</code>和<code>Exif</code>规范，一遍我们可以避免一些更明显的损坏图像，以至于解析器不会试图解析它以浪费宝贵的<code>fuzzing cycles</code>。</p>
+<p>从前文提到的<a target="_blank" rel="noopener" href="https://www.media.mit.edu/pia/Research/deepview/exif.html">规范概述</a>可知所有的<code>JPEG</code>图片都是以<code>0xFFD8</code>开头，以<code>0xFFD9</code>结尾，这前几个字节就是所谓的<code>magic bytes</code>，在<code>*Nix system</code>中通过<code>magic bytes</code>可以直接识别出文件类型。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# file Canon_40D.jpg 
+Canon_40D.jpg: JPEG image data, JFIF standard <span class="hljs-number">1.01</span>, resolution (DPI), density <span class="hljs-number">72</span>x72, segment length <span class="hljs-number">16</span>, Exif Standard: [TIFF image data, little-endian, direntries=<span class="hljs-number">11</span>, manufacturer=Canon, model=Canon EOS <span class="hljs-number">40</span>D, orientation=upper-left, xresolution=<span class="hljs-number">166</span>, yresolution=<span class="hljs-number">174</span>, resolutionunit=<span class="hljs-number">2</span>, software=GIMP <span class="hljs-number">2.4</span><span class="hljs-number">.5</span>, datetime=<span class="hljs-number">2008</span>:<span class="hljs-number">07</span>:<span class="hljs-number">31</span> <span class="hljs-number">10</span>:<span class="hljs-number">38</span>:<span class="hljs-number">11</span>, GPS-Data], baseline, precision <span class="hljs-number">8</span>, <span class="hljs-number">100</span>x68, components <span class="hljs-number">3</span></code></pre>
+
+<p>我们可以去掉<code>.jpg</code>并获得相同的输出</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# file Canon
+Canon: JPEG image data, JFIF standard <span class="hljs-number">1.01</span>, resolution (DPI), density <span class="hljs-number">72</span>x72, segment length <span class="hljs-number">16</span>, Exif Standard: [TIFF image data, little-endian, direntries=<span class="hljs-number">11</span>, manufacturer=Canon, model=Canon EOS <span class="hljs-number">40</span>D, orientation=upper-left, xresolution=<span class="hljs-number">166</span>, yresolution=<span class="hljs-number">174</span>, resolutionunit=<span class="hljs-number">2</span>, software=GIMP <span class="hljs-number">2.4</span><span class="hljs-number">.5</span>, datetime=<span class="hljs-number">2008</span>:<span class="hljs-number">07</span>:<span class="hljs-number">31</span> <span class="hljs-number">10</span>:<span class="hljs-number">38</span>:<span class="hljs-number">11</span>, GPS-Data], baseline, precision <span class="hljs-number">8</span>, <span class="hljs-number">100</span>x68, components <span class="hljs-number">3</span></code></pre>
+
+<p>如果我们 <code>hexdump</code> 这个图片，我们可以看到最初的几个字节和最后的几个字节实际上就是<code>0xFFD8</code>和<code>0xFFD9</code></p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# hexdump Canon
+<span class="hljs-number">0000000</span> d8ff e0ff <span class="hljs-number">1000</span> <span class="hljs-number">464</span>a <span class="hljs-number">4649</span> <span class="hljs-number">0100</span> <span class="hljs-number">0101</span> <span class="hljs-number">4800</span>
+------SNIP------
+<span class="hljs-number">0001f</span>10 <span class="hljs-number">5</span>aed <span class="hljs-number">5158</span> d9ff</code></pre>
+
+<p>在规范概述中另外一个有趣的信息是<code>markers</code>是以<code>0xFF</code>开头的，有几种一直的静态标记 (<code>marders</code>) 例如：</p>
+<ul>
+<li>the ‘Start of Image’(SOI) marker: 0xFFD8</li>
+<li>APP1 marker: 0xFFE1</li>
+<li>generic markers: 0xFFXX</li>
+<li>the ‘End of Image’(EOI) marker: 0xFFD9</li>
+</ul>
+<p>因为我们不像去改变<code>image</code>的长度或者文件的类型，所以让我们继续并计划尽可能保持<code>SOI</code>和<code>EOI</code>标记完整，我们并不想插入<code>0xFFD9</code>到图像中间，以至于这会截断图像或者导致解析器以<code>non-crashy way</code>而产生混乱（<code>Non-crashy</code>并不是一个真实的词），这也可能会被误导也许我们也应该在字节流中随机放置<code>EOI</code>标记？来我们试试看。</p>
+<h2 id="Starting-Our-Fuzzer"><a href="#Starting-Our-Fuzzer" class="headerlink" title="Starting Our Fuzzer"></a>Starting Our Fuzzer</h2><p>这我们将做的第一件事情就是提取<code>JPEG</code>中的所有字节，我们希望将其用作我们的<code>valid</code>输入蓝本，当然我们会对其进行变异。</p>
+<p>我们的代码将会从写成这样开始：</p>
+<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+
+import sys
+
+# read bytes from our valid JPEG and return them in a mutable bytearray 
+def get_bytes(filename):
+	f &#x3D; open(filename, &quot;rb&quot;).read()
+	return bytearray(f)
+
+if len(sys.argv) &lt; 2:
+	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
+else:
+	filename &#x3D; sys.argv[1]
+	data &#x3D; get_bytes(filename)</code></pre>
+
+<p>如果我们希望看到这个数据是长什么样的，我们可以在数组中打印最初10个左右的字节值，然后看看我们将会如何与其进行交互，我们将仅是临时添加一些类似如下的东西：</p>
+<pre><code class="hljs python3">else:
+	filename &#x3D; sys.argv[1]
+	data &#x3D; get_bytes(filename)
+	counter &#x3D; 0
+	for x in data:
+		if counter &lt; 10:
+			print(x)
+		counter +&#x3D; 1</code></pre>
+
+<p>运行这个，显示我们正将其转换为整齐的十进制整数，在我看来，这让一切变得更为容易。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# python3 fuzzer.py Canon_40D.jpg 
+<span class="hljs-number">255</span>
+<span class="hljs-number">216</span>
+<span class="hljs-number">255</span>
+<span class="hljs-number">224</span>
+<span class="hljs-number">0</span>
+<span class="hljs-number">16</span>
+<span class="hljs-number">74</span>
+<span class="hljs-number">70</span>
+<span class="hljs-number">73</span>
+<span class="hljs-number">70</span></code></pre>
+
+<p>让我们快速地看看是否可以从我们的字节数组中创建一个新的合规的 <code>JPEG</code>，我们将把这个函数添加到我们的代码中并运行它。</p>
+<pre><code class="hljs python3">def create_new(data):
+	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
+	f.write(data)
+	f.close()</code></pre>
+
+<p>所以现在在我们的字典中可以获得一个<code>mutated.jpg</code>，让我们<code>hash</code>比较这两个文件，看它们是否匹配的上.</p>
+<pre><code class="hljs llvm">root<span class="hljs-title">@kali</span>:~# shasum Canon_<span class="hljs-number">40</span>D.jpg mutated.jpg 
+<span class="hljs-keyword">c</span><span class="hljs-number">3</span>d<span class="hljs-number">98686223</span>ad<span class="hljs-number">69</span>ea<span class="hljs-number">29</span><span class="hljs-keyword">c</span><span class="hljs-number">811</span>aaab<span class="hljs-number">35</span>d<span class="hljs-number">343</span>ff<span class="hljs-number">1</span>ae<span class="hljs-number">9</span>e  Canon_<span class="hljs-number">40</span>D.jpg
+<span class="hljs-keyword">c</span><span class="hljs-number">3</span>d<span class="hljs-number">98686223</span>ad<span class="hljs-number">69</span>ea<span class="hljs-number">29</span><span class="hljs-keyword">c</span><span class="hljs-number">811</span>aaab<span class="hljs-number">35</span>d<span class="hljs-number">343</span>ff<span class="hljs-number">1</span>ae<span class="hljs-number">9</span>e  mutated.jpg</code></pre>
+
+<p>有趣，我们可以有两个相同的文件，现在我们可以在创建<code>mutated.jpg</code>之前变异数据。</p>
+<h2 id="Mutating"><a href="#Mutating" class="headerlink" title="Mutating"></a>Mutating</h2><p>我们将保持我们的 <code>fuzzer</code> 相对简单，并且只是实现两种不同的变异方式，这些方法如下：</p>
+<ul>
+<li>位翻转（<code>bit flipping</code>）</li>
+<li>用<code>Gynvael&#39;s &#39;Magic Numbers&#39;</code>覆盖字节序列（<code>overwriting byte sequences with Gynvael’s ‘Magic Numbers’</code>）</li>
+</ul>
+<p>让我们开始位翻转吧，<code>255</code>（<code>0xFF</code>）在二进制中将是<code>11111111</code>，如果我们随机翻转这个数字中的一位，假设在<code>index</code>数字为<code>2</code>，我们将得到<code>11011111</code>，这个新数字会是<code>223</code>（<code>0xDF</code>）。</p>
+<p>我不能完全确认这种变异方式和随机选择一个<code>0-255</code>的数字并且重写一个新的数字有着什么区别，我的直觉说位翻转与用任意字节随机覆盖字节非常相似。</p>
+<p>让我们继续，假设我们想去仅翻转<code>1%</code>的比特，我们在<code>Python</code>中通过如下代码得到这个数字。</p>
+<pre><code class="hljs lisp">num_of_flips = int((<span class="hljs-name">len</span>(<span class="hljs-name">data</span>) - <span class="hljs-number">4</span>) * .01)</code></pre>
+
+<p>我们想从我们的字节数组的长度中减去4，因为我们不想计算在我们的数组中的最初的两个字节或最后连个字节，因为这些是<code>SOI</code>和<code>EOI</code>标记，我们意在保持原样。</p>
+<p>接下来我们将想要随机选择许多的<code>indexes</code>然后将这些<code>indexes</code>作为位翻转的目标，我们将继续创建一组可以修改的可能的<code>indexes</code>，然后选择其中的<code>num_of_flips</code>个进行随机的位翻转。</p>
+<pre><code class="hljs python3">indexes &#x3D; range(4, (len(data) - 4))
+
+chosen_indexes &#x3D; []
+
+# iterate selecting indexes until we&#39;ve hit our num_of_flips number
+counter &#x3D; 0
+while counter &lt; num_of_flips:
+	chosen_indexes.append(random.choice(indexes))
+	counter +&#x3D; 1</code></pre>
+
+<p>让我们把<code>import random</code>加到我们的<code>script</code>中，并添加这些<code>debug</code>的<code>print</code>状态以确保所有的一切都能成功运转。</p>
+<pre><code class="hljs python3">print(&quot;Number of indexes chosen: &quot; + str(len(chosen_indexes)))
+print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
+
+<p>我们的<code>function</code>现在是像这样：</p>
+<pre><code class="hljs python3">def bit_flip(data):
+	num_of_flips &#x3D; int((len(data) - 4) * .01)
+	indexes &#x3D; range(4, (len(data) - 4))
+
+	chosen_indexes &#x3D; []
+
+	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
+	counter &#x3D; 0
+	while counter &lt; num_of_flips:
+		chosen_indexes.append(random.choice(indexes))
+		counter +&#x3D; 1
+
+	print(&quot;Number of indexes chosen: &quot; + str(len(chosen_indexes)))
+	print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
+
+<p>如果我们跑这个脚本，我们将会得到一个预期的不错的输出。</p>
+<pre><code class="hljs yaml"><span class="hljs-string">root@kali:~#</span> <span class="hljs-string">python3</span> <span class="hljs-string">fuzzer.py</span> <span class="hljs-string">Canon_40D.jpg</span> 
+<span class="hljs-attr">Number of indexes chosen:</span> <span class="hljs-number">79</span>
+<span class="hljs-attr">Indexes chosen:</span> [<span class="hljs-number">6580</span>, <span class="hljs-number">930</span>, <span class="hljs-number">6849</span>, <span class="hljs-number">6007</span>, <span class="hljs-number">5020</span>, <span class="hljs-number">33</span>, <span class="hljs-number">474</span>, <span class="hljs-number">4051</span>, <span class="hljs-number">7722</span>, <span class="hljs-number">5393</span>, <span class="hljs-number">3540</span>, <span class="hljs-number">54</span>, <span class="hljs-number">5290</span>, <span class="hljs-number">2106</span>, <span class="hljs-number">2544</span>, <span class="hljs-number">1786</span>, <span class="hljs-number">5969</span>, <span class="hljs-number">5211</span>, <span class="hljs-number">2256</span>, <span class="hljs-number">510</span>, <span class="hljs-number">7147</span>, <span class="hljs-number">3370</span>, <span class="hljs-number">625</span>, <span class="hljs-number">5845</span>, <span class="hljs-number">2082</span>, <span class="hljs-number">2451</span>, <span class="hljs-number">7500</span>, <span class="hljs-number">3672</span>, <span class="hljs-number">2736</span>, <span class="hljs-number">2462</span>, <span class="hljs-number">5395</span>, <span class="hljs-number">7942</span>, <span class="hljs-number">2392</span>, <span class="hljs-number">1201</span>, <span class="hljs-number">3274</span>, <span class="hljs-number">7629</span>, <span class="hljs-number">5119</span>, <span class="hljs-number">1977</span>, <span class="hljs-number">2986</span>, <span class="hljs-number">7590</span>, <span class="hljs-number">1633</span>, <span class="hljs-number">4598</span>, <span class="hljs-number">1834</span>, <span class="hljs-number">445</span>, <span class="hljs-number">481</span>, <span class="hljs-number">7823</span>, <span class="hljs-number">7708</span>, <span class="hljs-number">6840</span>, <span class="hljs-number">1596</span>, <span class="hljs-number">5212</span>, <span class="hljs-number">4277</span>, <span class="hljs-number">3894</span>, <span class="hljs-number">2860</span>, <span class="hljs-number">2912</span>, <span class="hljs-number">6755</span>, <span class="hljs-number">3557</span>, <span class="hljs-number">3535</span>, <span class="hljs-number">3745</span>, <span class="hljs-number">1780</span>, <span class="hljs-number">252</span>, <span class="hljs-number">6128</span>, <span class="hljs-number">7187</span>, <span class="hljs-number">500</span>, <span class="hljs-number">1051</span>, <span class="hljs-number">4372</span>, <span class="hljs-number">5138</span>, <span class="hljs-number">3305</span>, <span class="hljs-number">872</span>, <span class="hljs-number">6258</span>, <span class="hljs-number">2136</span>, <span class="hljs-number">3486</span>, <span class="hljs-number">5600</span>, <span class="hljs-number">651</span>, <span class="hljs-number">1624</span>, <span class="hljs-number">4368</span>, <span class="hljs-number">7076</span>, <span class="hljs-number">1802</span>, <span class="hljs-number">2335</span>, <span class="hljs-number">3553</span>]</code></pre>
+
+<p>接下来我们需要实际变异这些<code>indexes</code>上的字节，我们需要位翻转他们，我选择用一个非常<code>hacky</code>的方式去做这件事，你尽可以随意的实现你自己的方法，我们准备转换这些<code>indexes</code>上的字节到二进制字符串，并将其补齐为8位数长，让我们添加这个代码，看看我们在说些什么，我们将会转换这字节的值（就是转为十进制）到二进制串，并如果它少于8位数长时在其前面填充0，这最后一行就是调试时的临时打印。</p>
+<pre><code class="hljs python3">for x in chosen_indexes:
+    current &#x3D; data[x]
+    current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
+    current &#x3D; &quot;0&quot; * (8 - len(current)) + current</code></pre>
+
+<p>正如你所示，我们有一个不错的二进制数字作为字符串的输出。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# python3 fuzzer.py Canon_40D.jpg 
+<span class="hljs-number">10100110</span>
+<span class="hljs-number">10111110</span>
+<span class="hljs-number">10010010</span>
+<span class="hljs-number">00110000</span>
+<span class="hljs-number">01110001</span>
+<span class="hljs-number">00110101</span>
+<span class="hljs-number">00110010</span>
+-----SNIP-----</code></pre>
+
+<p>现在对于其中的每一个，我们将会随机挑选一个<code>index</code>然后翻转它，例如，<code>10100110</code>，如果选择<code>index 0</code>，我们得到是<code>1</code>，我们将会翻转其成为<code>0</code>。</p>
+<p>这段代码段最后的考虑是这些是字符串而不是整数，所以我们需要做的最后一件事情就是将翻转的二进制字符串转换为整数。</p>
+<p>我们将创建一个空白的列表、把每个数字降入这个列表、翻转我们随机挑选的数字，然后从所有的列表成员中构造一个新的字符串（我们必须使用这个中间列表的步骤，因为字符串是可变异的），最后我们将其转换为整数，然后返回数据给我们的<code>create_new()</code>函数以创建一个新的<code>JPEG</code>。</p>
+<p>我们的全部脚本目前是像这样：</p>
+<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+
+import sys
+import random
+
+# read bytes from our valid JPEG and return them in a mutable bytearray 
+def get_bytes(filename):
+	f &#x3D; open(filename, &quot;rb&quot;).read()
+	return bytearray(f)
+
+def bit_flip(data):
+	num_of_flips &#x3D; int((len(data) - 4) * .01)
+	indexes &#x3D; range(4, (len(data) - 4))
+
+	chosen_indexes &#x3D; []
+
+	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
+	counter &#x3D; 0
+	while counter &lt; num_of_flips:
+		chosen_indexes.append(random.choice(indexes))
+		counter +&#x3D; 1
+
+	for x in chosen_indexes:
+		current &#x3D; data[x]
+		current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
+		current &#x3D; &quot;0&quot; * (8 - len(current)) + current
+		
+		indexes &#x3D; range(0,8)
+
+		picked_index &#x3D; random.choice(indexes)
+
+		new_number &#x3D; []
+
+		# our new_number list now has all the digits, example: [&#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;]
+		for i in current:
+			new_number.append(i)
+
+		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
+		if new_number[picked_index] &#x3D;&#x3D; &quot;1&quot;:
+			new_number[picked_index] &#x3D; &quot;0&quot;
+		else:
+			new_number[picked_index] &#x3D; &quot;1&quot;
+
+		# create our new binary string of our bit-flipped number
+		current &#x3D; &#39;&#39;
+		for i in new_number:
+			current +&#x3D; i
+
+		# convert that string to an integer
+		current &#x3D; int(current,2)
+
+		# change the number in our byte array to our new number we just constructed
+		data[x] &#x3D; current
+
+	return data
+
+
+# create new jpg with mutated data
+def create_new(data):
+	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
+	f.write(data)
+	f.close()
+
+if len(sys.argv) &lt; 2:
+	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
+
+else:
+	filename &#x3D; sys.argv[1]
+	data &#x3D; get_bytes(filename)
+	mutated_data &#x3D; bit_flip(data)
+	create_new(mutated_data)</code></pre>
+
+<h2 id="Analyzing-Mutation"><a href="#Analyzing-Mutation" class="headerlink" title="Analyzing Mutation"></a>Analyzing Mutation</h2><p>如果我们跑我们的脚本，我们可以利用<code>shasum</code>这个输出，然后与原本的<code>JPEG</code>进行比较。</p>
+<pre><code class="hljs reasonml">root@kali:~# shasum <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Canon_40D</span>.</span></span>jpg mutated.jpg 
+c3d98686223ad69ea29c811aaab35d343ff1ae9e  <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Canon_40D</span>.</span></span>jpg
+a7b619028af3d8e5ac106a697b06efcde0649249  mutated.jpg</code></pre>
+
+<p>这个看起来很有戏，因为它们现在有着不同的哈希值，我们未来通过用一个程序（被称为<a target="_blank" rel="noopener" href="https://www.scootersoftware.com/">Beyond Compare</a>或<code>bcompare</code>）比较它们以进行分析，我们将会有着不同高亮的两个<code>hexdumps</code></p>
+<p><img src="/img/fuzzing_like_a_caveman/bcompare.png" srcset="/img/loading.gif" alt="bcompare.png"></p>
+<p>正如你所是，在这一个屏幕的共享中，我们有着三个字节的不同，它们已经进行了它们的位翻转，这个初始的在左侧，而变异的样本在右侧。</p>
+<p>这个变异的方法似乎起作用了，让我们继续实现我们第二个变异的方法。</p>
+<h2 id="Gynvael’s-Magic-Numbers"><a href="#Gynvael’s-Magic-Numbers" class="headerlink" title="Gynvael’s Magic Numbers"></a>Gynvael’s Magic Numbers</h2><p>在前文提到的<code>GynvaelColdwind</code>的<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=BrDujogxYSk&t=2545">Basics of fuzzing’ stream</a>，他枚举了一些在程序上可以有着毁灭影响的<code>magic numbers</code>，通常，这些数字和数据类型大小和算数引起的错误有关，这些讨论的数字是：</p>
+<ul>
+<li>0xFF</li>
+<li>0x7F</li>
+<li>0x00</li>
+<li>0xFFFF</li>
+<li>0x0000</li>
+<li>0xFFFFFFFF</li>
+<li>0x00000000</li>
+<li>0x80000000 &lt;—- minimum 32-bit int</li>
+<li>0x40000000 &lt;—- just half of that amount</li>
+<li>0x7FFFFFFF &lt;—- max 32-bit int</li>
+</ul>
+<p>如果在<code>malloc()</code>或其他类型的操作过程中对这些类型的值执行任何类型的算术运算，溢出可能就是很常见，例如如果你加<code>0x1</code>到<code>0xFF</code>在一个字节的寄存器上，它将转到<code>0x00</code>，这是无意的行为，<code>HEVD</code>实际上已经有一个与这个理念类似的整数溢出<code>bug</code>。</p>
+<p>假设我们的<code>fuzzer</code>选择<code>0x7FFFFFFF</code>作为它想要使用的魔数，该值是4个字节长，所以我们必须在数组中找到一个字节索引，并覆盖该字节加上接下来的三个字节。让我们继续并开始在我们的<code>fuzzer</code>中实现它。</p>
+<h2 id="Implementing-Mutation-Method-2"><a href="#Implementing-Mutation-Method-2" class="headerlink" title="Implementing Mutation Method #2"></a>Implementing Mutation Method #2</h2><p>首先我们将想要创建一个类似<code>Gynvael</code>做的一个元组列表，在这元组中的第一个数字是<code>magic numbers</code>的字节数，第二个数字是十进制上的字节的值。</p>
+<pre><code class="hljs python3">def magic(data):
+	magic_vals &#x3D; [
+	(1, 255),
+	(1, 255),
+	(1, 127),
+	(1, 0),
+	(2, 255),
+	(2, 0),
+	(4, 255),
+	(4, 0),
+	(4, 128),
+	(4, 64),
+	(4, 127)
+	]
+
+	picked_magic &#x3D; random.choice(magic_vals)
+
+	print(picked_magic)</code></pre>
+
+<p>如果我们跑这个脚本，我门就可以看到它随机在取一个<code>magic</code>值元组</p>
+<pre><code class="hljs python3">root@kali:~# python3 fuzzer.py Canon_40D.jpg 
+(4, 64)
+root@kali:~# python3 fuzzer.py Canon_40D.jpg 
+(4, 128)
+root@kali:~# python3 fuzzer.py Canon_40D.jpg 
+(4, 0)
+root@kali:~# python3 fuzzer.py Canon_40D.jpg 
+(2, 255)
+root@kali:~# python3 fuzzer.py Canon_40D.jpg 
+(4, 0)</code></pre>
+
+<p>我们现在需要用新的<code>magic</code>1到4字节的值复写到<code>JPEG</code>中的1到4字节的值上，我们将要建立我们可能的<code>indexes</code>就像之前那个方法一样，随机选择<code>index</code>然后覆盖这个<code>index</code>上的字节用我们<code>picked_magic</code>数字。</p>
+<p>所以，如果例如我们取的是<code>(4, 128)</code>，我们知道这是4个字节，所以这个魔数是<code>0x80000000</code>，所以我们将做些类似如下的事情：</p>
+<pre><code class="hljs python3">byte[x] &#x3D; 128
+byte[x+1] &#x3D; 0
+byte[x+2] &#x3D; 0
+byte[x+3] &#x3D; 0</code></pre>
+
+<p>总而言之，我们的函数如下所示：</p>
+<pre><code class="hljs python3">def magic(data):
+	magic_vals &#x3D; [
+	(1, 255),
+	(1, 255),
+	(1, 127),
+	(1, 0),
+	(2, 255),
+	(2, 0),
+	(4, 255),
+	(4, 0),
+	(4, 128),
+	(4, 64),
+	(4, 127)
+	]
+
+	picked_magic &#x3D; random.choice(magic_vals)
+
+	length &#x3D; len(data) - 8
+	index &#x3D; range(0, length)
+	picked_index &#x3D; random.choice(index)
+
+	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
+	if picked_magic[0] &#x3D;&#x3D; 1:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFF
+			data[picked_index] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 127:			# 0x7F
+			data[picked_index] &#x3D; 127
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00
+			data[picked_index] &#x3D; 0
+
+	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
+	elif picked_magic[0] &#x3D;&#x3D; 2:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFF
+			data[picked_index] &#x3D; 255
+			data[picked_index + 1] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x0000
+			data[picked_index] &#x3D; 0
+			data[picked_index + 1] &#x3D; 0
+
+	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
+	elif picked_magic[0] &#x3D;&#x3D; 4:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFFFFFF
+			data[picked_index] &#x3D; 255
+			data[picked_index + 1] &#x3D; 255
+			data[picked_index + 2] &#x3D; 255
+			data[picked_index + 3] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00000000
+			data[picked_index] &#x3D; 0
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 128:			# 0x80000000
+			data[picked_index] &#x3D; 128
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 64:			# 0x40000000
+			data[picked_index] &#x3D; 64
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 127:			# 0x7FFFFFFF
+			data[picked_index] &#x3D; 127
+			data[picked_index + 1] &#x3D; 255
+			data[picked_index + 2] &#x3D; 255
+			data[picked_index + 3] &#x3D; 255
+		
+	return data</code></pre>
+
+<h2 id="Analyzing-Mutation-2"><a href="#Analyzing-Mutation-2" class="headerlink" title="Analyzing Mutation #2"></a>Analyzing Mutation #2</h2><p>现在我们运行脚本，然后在<code>Beyond Compare</code>中分析结果，我们可以看到这个两个字节的<code>0xA6 0x76</code>将被复写成<code>0xFF 0xFF</code>。</p>
+<p><img src="/img/fuzzing_like_a_caveman/bcompare2.png" srcset="/img/loading.gif" alt="bcompare2.png"></p>
+<p>这正是我们想实现的。</p>
+<h2 id="Starting-to-Fuzz"><a href="#Starting-to-Fuzz" class="headerlink" title="Starting to Fuzz"></a>Starting to Fuzz</h2><p>现在我们有了两个可靠的编译数据的方法，我们需要做：</p>
+<ul>
+<li>用我们的函数的其中一个变异数据</li>
+<li>用变异的数据创建一个新的图片</li>
+<li>把变异的图片喂给我们的二进制用于解析</li>
+<li>捕获任何<code>Segmentation faults</code>并且<code>log</code>产生这个的图片</li>
+</ul>
+<h3 id="Victim"><a href="#Victim" class="headerlink" title="Victim?"></a>Victim?</h3><p>对于我们的受害者程序，我们将用<code>site:github.com &quot;exif&quot; language:c</code>搜索<code>Google</code>，以找到用 C 编写的引用了<code>exif</code>的<code>Github</code>项目。</p>
+<p>快速浏览将我们带到<code>https://github.com/mkttanabe/exif</code></p>
+<p>我们可以通过<code>git cloning</code>这个仓库和用<code>README</code>中的<code>building with gcc</code>指令来安装该程序（我已经把编译好的二进制文件放到了<code>/usr/bin</code>，仅仅是为了方便）</p>
+<p>让我们先来看看这个程序怎么处理我们合规的<code>JPEG</code>吧。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# exif Canon_40D.jpg -verbose
+system: little-endian
+  data: little-endian
+[Canon_40D.jpg] createIfdTableArray: result=<span class="hljs-number">5</span>
+
+&#123;<span class="hljs-number">0</span>TH IFD&#125; tags=<span class="hljs-number">11</span>
+tag[<span class="hljs-number">00</span>] <span class="hljs-number">0x010F</span> Make
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">6</span> val=[Canon]
+tag[<span class="hljs-number">01</span>] <span class="hljs-number">0x0110</span> Model
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">14</span> val=[Canon EOS <span class="hljs-number">40</span>D]
+tag[<span class="hljs-number">02</span>] <span class="hljs-number">0x0112</span> Orientation
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">03</span>] <span class="hljs-number">0x011A</span> XResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">72</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">04</span>] <span class="hljs-number">0x011B</span> YResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">72</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">05</span>] <span class="hljs-number">0x0128</span> ResolutionUnit
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">2</span> 
+tag[<span class="hljs-number">06</span>] <span class="hljs-number">0x0131</span> Software
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">11</span> val=[GIMP <span class="hljs-number">2.4</span><span class="hljs-number">.5</span>]
+tag[<span class="hljs-number">07</span>] <span class="hljs-number">0x0132</span> DateTime
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">20</span> val=[<span class="hljs-number">2008</span>:<span class="hljs-number">07</span>:<span class="hljs-number">31</span> <span class="hljs-number">10</span>:<span class="hljs-number">38</span>:<span class="hljs-number">11</span>]
+tag[<span class="hljs-number">08</span>] <span class="hljs-number">0x0213</span> YCbCrPositioning
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">2</span> 
+tag[<span class="hljs-number">09</span>] <span class="hljs-number">0x8769</span> ExifIFDPointer
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">214</span> 
+tag[<span class="hljs-number">10</span>] <span class="hljs-number">0x8825</span> GPSInfoIFDPointer
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">978</span> 
+
+&#123;EXIF IFD&#125; tags=<span class="hljs-number">30</span>
+tag[<span class="hljs-number">00</span>] <span class="hljs-number">0x829A</span> ExposureTime
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1</span>/<span class="hljs-number">160</span> 
+tag[<span class="hljs-number">01</span>] <span class="hljs-number">0x829D</span> FNumber
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">71</span>/<span class="hljs-number">10</span> 
+tag[<span class="hljs-number">02</span>] <span class="hljs-number">0x8822</span> ExposureProgram
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">03</span>] <span class="hljs-number">0x8827</span> PhotographicSensitivity
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">100</span> 
+tag[<span class="hljs-number">04</span>] <span class="hljs-number">0x9000</span> ExifVersion
+        type=<span class="hljs-number">7</span> count=<span class="hljs-number">4</span> val=<span class="hljs-number">0</span> <span class="hljs-number">2</span> <span class="hljs-number">2</span> <span class="hljs-number">1</span> 
+tag[<span class="hljs-number">05</span>] <span class="hljs-number">0x9003</span> DateTimeOriginal
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">20</span> val=[<span class="hljs-number">2008</span>:<span class="hljs-number">05</span>:<span class="hljs-number">30</span> <span class="hljs-number">15</span>:<span class="hljs-number">56</span>:<span class="hljs-number">01</span>]
+tag[<span class="hljs-number">06</span>] <span class="hljs-number">0x9004</span> DateTimeDigitized
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">20</span> val=[<span class="hljs-number">2008</span>:<span class="hljs-number">05</span>:<span class="hljs-number">30</span> <span class="hljs-number">15</span>:<span class="hljs-number">56</span>:<span class="hljs-number">01</span>]
+tag[<span class="hljs-number">07</span>] <span class="hljs-number">0x9101</span> ComponentsConfiguration
+        type=<span class="hljs-number">7</span> count=<span class="hljs-number">4</span> val=<span class="hljs-number">0x01</span> <span class="hljs-number">0x02</span> <span class="hljs-number">0x03</span> <span class="hljs-number">0x00</span> 
+tag[<span class="hljs-number">08</span>] <span class="hljs-number">0x9201</span> ShutterSpeedValue
+        type=<span class="hljs-number">10</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">483328</span>/<span class="hljs-number">65536</span> 
+tag[<span class="hljs-number">09</span>] <span class="hljs-number">0x9202</span> ApertureValue
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">368640</span>/<span class="hljs-number">65536</span> 
+tag[<span class="hljs-number">10</span>] <span class="hljs-number">0x9204</span> ExposureBiasValue
+        type=<span class="hljs-number">10</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">0</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">11</span>] <span class="hljs-number">0x9207</span> MeteringMode
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">5</span> 
+tag[<span class="hljs-number">12</span>] <span class="hljs-number">0x9209</span> Flash
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">9</span> 
+tag[<span class="hljs-number">13</span>] <span class="hljs-number">0x920A</span> FocalLength
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">135</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">14</span>] <span class="hljs-number">0x9286</span> UserComment
+        type=<span class="hljs-number">7</span> count=<span class="hljs-number">264</span> val=<span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> <span class="hljs-number">0x00</span> (omitted)
+tag[<span class="hljs-number">15</span>] <span class="hljs-number">0x9290</span> SubSecTime
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">3</span> val=[<span class="hljs-number">00</span>]
+tag[<span class="hljs-number">16</span>] <span class="hljs-number">0x9291</span> SubSecTimeOriginal
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">3</span> val=[<span class="hljs-number">00</span>]
+tag[<span class="hljs-number">17</span>] <span class="hljs-number">0x9292</span> SubSecTimeDigitized
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">3</span> val=[<span class="hljs-number">00</span>]
+tag[<span class="hljs-number">18</span>] <span class="hljs-number">0xA000</span> FlashPixVersion
+        type=<span class="hljs-number">7</span> count=<span class="hljs-number">4</span> val=<span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> 
+tag[<span class="hljs-number">19</span>] <span class="hljs-number">0xA001</span> ColorSpace
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">20</span>] <span class="hljs-number">0xA002</span> PixelXDimension
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">100</span> 
+tag[<span class="hljs-number">21</span>] <span class="hljs-number">0xA003</span> PixelYDimension
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">68</span> 
+tag[<span class="hljs-number">22</span>] <span class="hljs-number">0xA005</span> InteroperabilityIFDPointer
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">948</span> 
+tag[<span class="hljs-number">23</span>] <span class="hljs-number">0xA20E</span> FocalPlaneXResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">3888000</span>/<span class="hljs-number">876</span> 
+tag[<span class="hljs-number">24</span>] <span class="hljs-number">0xA20F</span> FocalPlaneYResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">2592000</span>/<span class="hljs-number">583</span> 
+tag[<span class="hljs-number">25</span>] <span class="hljs-number">0xA210</span> FocalPlaneResolutionUnit
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">2</span> 
+tag[<span class="hljs-number">26</span>] <span class="hljs-number">0xA401</span> CustomRendered
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">0</span> 
+tag[<span class="hljs-number">27</span>] <span class="hljs-number">0xA402</span> ExposureMode
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">28</span>] <span class="hljs-number">0xA403</span> WhiteBalance
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">0</span> 
+tag[<span class="hljs-number">29</span>] <span class="hljs-number">0xA406</span> SceneCaptureType
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">0</span> 
+
+&#123;Interoperability IFD&#125; tags=<span class="hljs-number">2</span>
+tag[<span class="hljs-number">00</span>] <span class="hljs-number">0x0001</span> InteroperabilityIndex
+        type=<span class="hljs-number">2</span> count=<span class="hljs-number">4</span> val=[R98]
+tag[<span class="hljs-number">01</span>] <span class="hljs-number">0x0002</span> InteroperabilityVersion
+        type=<span class="hljs-number">7</span> count=<span class="hljs-number">4</span> val=<span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> 
+
+&#123;GPS IFD&#125; tags=<span class="hljs-number">1</span>
+tag[<span class="hljs-number">00</span>] <span class="hljs-number">0x0000</span> GPSVersionID
+        type=<span class="hljs-number">1</span> count=<span class="hljs-number">4</span> val=<span class="hljs-number">2</span> <span class="hljs-number">2</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> 
+
+&#123;<span class="hljs-number">1</span>ST IFD&#125; tags=<span class="hljs-number">6</span>
+tag[<span class="hljs-number">00</span>] <span class="hljs-number">0x0103</span> Compression
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">6</span> 
+tag[<span class="hljs-number">01</span>] <span class="hljs-number">0x011A</span> XResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">72</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">02</span>] <span class="hljs-number">0x011B</span> YResolution
+        type=<span class="hljs-number">5</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">72</span>/<span class="hljs-number">1</span> 
+tag[<span class="hljs-number">03</span>] <span class="hljs-number">0x0128</span> ResolutionUnit
+        type=<span class="hljs-number">3</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">2</span> 
+tag[<span class="hljs-number">04</span>] <span class="hljs-number">0x0201</span> JPEGInterchangeFormat
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1090</span> 
+tag[<span class="hljs-number">05</span>] <span class="hljs-number">0x0202</span> JPEGInterchangeFormatLength
+        type=<span class="hljs-number">4</span> count=<span class="hljs-number">1</span> val=<span class="hljs-number">1378</span> 
+
+<span class="hljs-number">0</span>th IFD : Model = [Canon EOS <span class="hljs-number">40</span>D]
+Exif IFD : DateTimeOriginal = [<span class="hljs-number">2008</span>:<span class="hljs-number">05</span>:<span class="hljs-number">30</span> <span class="hljs-number">15</span>:<span class="hljs-number">56</span>:<span class="hljs-number">01</span>]</code></pre>
+
+<p>我们可以看到这个程序解析出<code>tags</code>并说明与它们相关联的字节值，这正是我们想要找到的。</p>
+<h3 id="Chasing-Segfaults"><a href="#Chasing-Segfaults" class="headerlink" title="Chasing Segfaults"></a>Chasing Segfaults</h3><p>理想情况下，我们将会喂给这个程序一些变异的数据，然后得到<code>segfault</code>，意味着我们已找到了<code>bug</code>。我遇到的问题是当我为了<code>Segmentation fault</code>消息监控<code>stdout</code>和<code>sterr</code>是，它从未出现，这是因为<code>Segmentation fault</code>消息是来自我们的命令行<code>shell</code>而不是二进制，这意味着<code>shell</code>收到一个<code>SIGSEGV</code>信号，并且会反馈打印这个信息。</p>
+<p>我发现监控这个的有一种方法用<code>pexpect Python module</code>的<code>use()</code>方法和<code>pipes Python module</code>的<code>quote()</code>方法。</p>
+<p>我们将加一个新的函数，这个将输入<code>counter</code>作为参数，这个参数为我们<code>fuzzer</code>迭代的轮数，另外一个参数是变异的数据，如果我们看到<code>Segmentation</code>在我们<code>run()</code>指令的输出里面，我们将把这个变异的数据写入文件并保存，这样我们就可以有让二进制<code>crash</code>的<code>JPEG</code>图片了。</p>
+<p>让我们创建一个新的称为<code>crashes</code>文件夹，然后我们将在这里面保存<code>JPEGs</code>，这些导致<code>crashes</code>的图片将会以<code>crash.&lt;fuzzing iteration (counter)&gt;.jpg</code>的格式保存，所以如果这个<code>fuzzing</code>迭代了100次导致了<code>a crash</code>，我们应该会得到这样的文件：<code>/crashes/crash.100.jpg</code></p>
+<p>我们将持续以保持每100次模糊测试迭代的计数打印到终端的同一行，我们的函数如下所示：</p>
+<pre><code class="hljs python3">def exif(counter,data):
+    command &#x3D; &quot;exif mutated.jpg -verbose&quot;
+
+    out, returncode &#x3D; run(&quot;sh -c &quot; + quote(command), withexitstatus&#x3D;1)
+
+    if b&quot;Segmentation&quot; in out:
+    	f &#x3D; open(&quot;crashes&#x2F;crash.&#123;&#125;.jpg&quot;.format(str(counter)), &quot;ab+&quot;)
+    	f.write(data)
+
+    if counter % 100 &#x3D;&#x3D; 0:
+    	print(counter, end&#x3D;&quot;\r&quot;)</code></pre>
+
+<p>接下来，我们将在我们代码的最下面替换我们执行的<code>stub</code>以跑一个计数器，一旦我们达到了<code>1000</code>次迭代，我们就停止<code>fuzzing</code>，我们也将让我们的<code>fuzzer</code>随机选择一个我们变异的方法，所以它或使用位翻转或使用魔数，让我们运行它，然后在结束时检测我们的<code>crashes</code>文件夹。</p>
+<p>当<code>fuzzer</code>结束后，你可以看到我们获得了大概<code>30</code>个<code>crashes</code>。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~/crashes# ls
+crash<span class="hljs-number">.102</span>.jpg  crash<span class="hljs-number">.317</span>.jpg  crash<span class="hljs-number">.52</span>.jpg   crash<span class="hljs-number">.620</span>.jpg  crash<span class="hljs-number">.856</span>.jpg
+crash<span class="hljs-number">.129</span>.jpg  crash<span class="hljs-number">.324</span>.jpg  crash<span class="hljs-number">.551</span>.jpg  crash<span class="hljs-number">.694</span>.jpg  crash<span class="hljs-number">.861</span>.jpg
+crash<span class="hljs-number">.152</span>.jpg  crash<span class="hljs-number">.327</span>.jpg  crash<span class="hljs-number">.559</span>.jpg  crash<span class="hljs-number">.718</span>.jpg  crash<span class="hljs-number">.86</span>.jpg
+crash<span class="hljs-number">.196</span>.jpg  crash<span class="hljs-number">.362</span>.jpg  crash<span class="hljs-number">.581</span>.jpg  crash<span class="hljs-number">.775</span>.jpg  crash<span class="hljs-number">.984</span>.jpg
+crash<span class="hljs-number">.252</span>.jpg  crash<span class="hljs-number">.395</span>.jpg  crash<span class="hljs-number">.590</span>.jpg  crash<span class="hljs-number">.785</span>.jpg  crash<span class="hljs-number">.985</span>.jpg
+crash<span class="hljs-number">.285</span>.jpg  crash<span class="hljs-number">.44</span>.jpg   crash<span class="hljs-number">.610</span>.jpg  crash<span class="hljs-number">.84</span>.jpg   crash<span class="hljs-number">.987</span>.jpg</code></pre>
+
+<p>我们现在可以用一行快速的代码证实这个结果：<code>root@kali:~/crashes# for i in *.jpg; do exif &quot;$i&quot; -verbose &gt; /dev/null 2&gt;&amp;1; done</code> ，记住我们可以将<code>STDOUT</code>和<code>STDERR</code>都导向<code>/dev/null</code>，因为<code>Segmentation fault</code>是来自<code>shell</code>，而不是来自二进制文件。</p>
+<p>我们跑上面这指令，以下为输出：</p>
+<pre><code class="hljs properties"><span class="hljs-meta">root@kali</span>:<span class="hljs-string">~/crashes# for i in *.jpg; do exif &quot;$i&quot; -verbose &gt; /dev/null 2&gt;&amp;1; done</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">Segmentation</span> <span class="hljs-string">fault</span>
+<span class="hljs-attr">-----SNIP-----</span></code></pre>
+
+<p>你不可以看到它们的所有，但是这里确实有30个<code>segfaults</code>，所以所有的事情都似乎按照计划的进行。</p>
+<h2 id="Triaging-Crashes"><a href="#Triaging-Crashes" class="headerlink" title="Triaging Crashes"></a>Triaging Crashes</h2><p>现在我们有大约30个<code>crashes</code>和导致<code>crashes</code>的<code>JPEGs</code>，下一步是分析这些<code>crahes</code>并找出其中它们有多少是<code>unique</code>，在这里我们可以用一些我们看<code>Brandon Faulk</code>的视频学到的东西，用<code>Beyond Compare</code>快速看一遍<code>crash</code>的样本，我们发现大部分都是因为我们的<code>bit_flip()</code>变异而不是<code>magic()</code>变异方法产生的，这很有趣，作为测试，当我们运行的过程中，我们可以关闭函数选择的随机性，只使用<code>magic()</code>变异方式运行100000次迭代，再看看我们是否会遇到任何<code>crahes</code></p>
+<h2 id="Using-ASan-to-Analyze-Crashes"><a href="#Using-ASan-to-Analyze-Crashes" class="headerlink" title="Using ASan to Analyze Crashes"></a>Using ASan to Analyze Crashes</h2><p><code>ASan</code>是<code>Address Sanitizer</code>，它是较新版本的<code>gcc</code>附带的有效工具，允许用户在编译二进制文件使用<code>-fsanitize=address</code>参数打开，并在发生内存访问错误时（即使是那些导致<code>crash</code>的时候）获得非常详细的信息，很显然，我们这里已经预选择了会崩溃的输入，所以我们错过该有效工具（笔者认为这里指的意思是在<code>fuzzing</code>的时候没有用<code>ASan</code>），但也许我们将会保存它在其他时间（使用）（笔者认为这里指的是在调<code>crash</code>的时候使用带<code>ASan</code>的编译后的二进制文件）。</p>
+<p>为了使用 ASan，我跟着<a target="_blank" rel="noopener" href="https://fuzzing-project.org/tutorial2.html">the Fuzzing Project</a>的思路，然后用如下<code>flags: cc -fsanitize=address -ggdb -o exifsan sample_main.c exif.c</code>重新编译了<code>exif</code> </p>
+<p>然后为了方便使用我将<code>exifsan</code> 移动到<code>/usr/bin</code>，如果我们在<code>crash</code>样本上运行这个新编译的二进制文件，让我们看看输出吧</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~/crashes# exifsan crash<span class="hljs-number">.252</span>.jpg -verbose
+system: little-endian
+  data: little-endian
+=================================================================
+==<span class="hljs-number">18831</span>==ERROR: AddressSanitizer: heap-buffer-overflow on address <span class="hljs-number">0xb4d00758</span> at pc <span class="hljs-number">0x00415b9e</span> bp <span class="hljs-number">0xbf8c91f8</span> sp <span class="hljs-number">0xbf8c91ec</span>
+READ of size <span class="hljs-number">4</span> at <span class="hljs-number">0xb4d00758</span> thread T0                                                                                              
+    #<span class="hljs-number">0</span> <span class="hljs-number">0x415b9d</span> <span class="hljs-keyword">in</span> parseIFD /root/exif/exif.c:<span class="hljs-number">2356</span>
+    #<span class="hljs-number">1</span> <span class="hljs-number">0x408f10</span> <span class="hljs-keyword">in</span> createIfdTableArray /root/exif/exif.c:<span class="hljs-number">271</span>
+    #<span class="hljs-number">2</span> <span class="hljs-number">0x4076ba</span> <span class="hljs-keyword">in</span> main /root/exif/sample_main.c:<span class="hljs-number">63</span>
+    #<span class="hljs-number">3</span> <span class="hljs-number">0xb77d0ef0</span> <span class="hljs-keyword">in</span> __libc_start_main ../csu/libc-start.c:<span class="hljs-number">308</span>
+    #<span class="hljs-number">4</span> <span class="hljs-number">0x407310</span> <span class="hljs-keyword">in</span> _start (/usr/bin/exifsan+<span class="hljs-number">0x2310</span>)
+
+<span class="hljs-number">0xb4d00758</span> <span class="hljs-keyword">is</span> located <span class="hljs-number">0</span> bytes to the right of <span class="hljs-number">8</span>-byte region [<span class="hljs-number">0xb4d00750</span>,<span class="hljs-number">0xb4d00758</span>)
+allocated by thread T0 here:                                                                                                        
+    #<span class="hljs-number">0</span> <span class="hljs-number">0xb7aa2097</span> <span class="hljs-keyword">in</span> __interceptor_malloc (/lib/i386-linux-gnu/libasan.so<span class="hljs-number">.5</span>+<span class="hljs-number">0x10c097</span>)
+    #<span class="hljs-number">1</span> <span class="hljs-number">0x415a9f</span> <span class="hljs-keyword">in</span> parseIFD /root/exif/exif.c:<span class="hljs-number">2348</span>
+    #<span class="hljs-number">2</span> <span class="hljs-number">0x408f10</span> <span class="hljs-keyword">in</span> createIfdTableArray /root/exif/exif.c:<span class="hljs-number">271</span>
+    #<span class="hljs-number">3</span> <span class="hljs-number">0x4076ba</span> <span class="hljs-keyword">in</span> main /root/exif/sample_main.c:<span class="hljs-number">63</span>
+    #<span class="hljs-number">4</span> <span class="hljs-number">0xb77d0ef0</span> <span class="hljs-keyword">in</span> __libc_start_main ../csu/libc-start.c:<span class="hljs-number">308</span>
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /root/exif/exif.c:<span class="hljs-number">2356</span> <span class="hljs-keyword">in</span> parseIFD
+Shadow bytes around the buggy address:
+  <span class="hljs-number">0x369a0090</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a00a0</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a00b0</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a00c0</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a00d0</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=&gt;<span class="hljs-number">0x369a00e0</span>: fa fa fa fa fa fa fa fa fa fa <span class="hljs-number">00</span>[fa]fa fa <span class="hljs-number">04</span> fa
+  <span class="hljs-number">0x369a00f0</span>: fa fa <span class="hljs-number">00</span> <span class="hljs-number">06</span> fa fa <span class="hljs-number">06</span> fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a0100</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a0110</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a0120</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  <span class="hljs-number">0x369a0130</span>: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents <span class="hljs-number">8</span> application bytes):
+  Addressable:           <span class="hljs-number">00</span>
+  Partially addressable: <span class="hljs-number">01</span> <span class="hljs-number">02</span> <span class="hljs-number">03</span> <span class="hljs-number">04</span> <span class="hljs-number">05</span> <span class="hljs-number">06</span> <span class="hljs-number">07</span> 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after <span class="hljs-keyword">return</span>:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan <span class="hljs-built_in">int</span>ernal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==<span class="hljs-number">18831</span>==ABORTING</code></pre>
+
+<p>很不错，我们不仅可以获得详细信息，而且<code>ASan</code>还为我们区分了错误类别，告诉我们<code>crash</code>地址并提供一个很好的堆栈调用，正如你所见，我们在<code>exif.c</code>的<code>parseIFD </code>函数中执行了一个4字节的读操作。</p>
+<pre><code class="hljs angelscript">READ of size <span class="hljs-number">4</span> at <span class="hljs-number">0xb4d00758</span> thread T0                                                                                              
+    #<span class="hljs-number">0</span> <span class="hljs-number">0x415b9d</span> <span class="hljs-keyword">in</span> parseIFD /root/exif/exif.c:<span class="hljs-number">2356</span>
+    #<span class="hljs-number">1</span> <span class="hljs-number">0x408f10</span> <span class="hljs-keyword">in</span> createIfdTableArray /root/exif/exif.c:<span class="hljs-number">271</span>
+    #<span class="hljs-number">2</span> <span class="hljs-number">0x4076ba</span> <span class="hljs-keyword">in</span> main /root/exif/sample_main.c:<span class="hljs-number">63</span>
+    #<span class="hljs-number">3</span> <span class="hljs-number">0xb77d0ef0</span> <span class="hljs-keyword">in</span> __libc_start_main ../csu/libc-start.c:<span class="hljs-number">308</span>
+    #<span class="hljs-number">4</span> <span class="hljs-number">0x407310</span> <span class="hljs-keyword">in</span> _start (/usr/bin/exifsan+<span class="hljs-number">0x2310</span>)</code></pre>
+
+<p>由于现在这都是标准二进制输出，我们实际上可以对这些<code>crash</code>进行分类并尝试理解它们，让我们首先尝试对<code>crash</code>进行冗余删除，有可能我们所有的30次崩溃都是同一个错误。也有可能我们有30次<code>unqiue crashes</code>（不太可能哈哈），所以我们需要解决这个问题。</p>
+<p>让我们再次调用<code>Python</code>脚本，我们将遍历该文件夹，对每次<code>crash</code>运行启用<code>ASan</code>的二进制文件，并记录每个<code>crash</code>地址的位置，我们还将尝试捕获它是<code>READ</code>还是<code>WRITE</code>操作，例如，对于<code>crash.252.jpg</code>，我们将日志文件名字格式化为：<code>crash.252.HBO.b4f00758.READ</code>，并将<code>ASan</code>输出写入日志，这样我们甚至在打开日志之前就知道导致它的<code>crash</code>图片名、<code>bug</code>的类别、地址和操作。 （我会在最后贴检测和分类的脚本，太恶心了，我讨厌它）</p>
+<p>在我们的<code>crashes</code>文件夹上运行检测和分类脚本后，我们现在可以看到我们已经分类了我们的<code>crashes</code>并且有一些非常有趣的东西。</p>
+<pre><code class="hljs css"><span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.102</span><span class="hljs-selector-class">.HBO</span><span class="hljs-selector-class">.b4f006d4</span><span class="hljs-selector-class">.READ</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.102</span><span class="hljs-selector-class">.jpg</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.129</span><span class="hljs-selector-class">.HBO</span><span class="hljs-selector-class">.b4f005dc</span><span class="hljs-selector-class">.READ</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.129</span><span class="hljs-selector-class">.jpg</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.152</span><span class="hljs-selector-class">.HBO</span><span class="hljs-selector-class">.b4f005dc</span><span class="hljs-selector-class">.READ</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.152</span><span class="hljs-selector-class">.jpg</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.317</span><span class="hljs-selector-class">.HBO</span><span class="hljs-selector-class">.b4f005b4</span><span class="hljs-selector-class">.WRITE</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.317</span><span class="hljs-selector-class">.jpg</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.285</span><span class="hljs-selector-class">.SEGV</span><span class="hljs-selector-class">.00000000</span><span class="hljs-selector-class">.READ</span>
+<span class="hljs-selector-tag">crash</span><span class="hljs-selector-class">.285</span><span class="hljs-selector-class">.jpg</span>
+<span class="hljs-selector-tag">------SNIP-----</span></code></pre>
+
+<p>在那里进行了一次大<code>SNIP</code>之后，在我的30次<code>crash</code>中，我只有一次<code>WRITE</code>操作。你无法从截断的输出中看到，但我也有很多<code>SEGV</code>错误因为<code>NULL</code>地址被引用了(0x00000000)</p>
+<p>让我们检查一下我们修改后的<code>fuzzer</code>，它只运行了100000次迭代的<code>magic()</code>编译，看看它是否找到任何<code>bugs</code></p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~/crashes2# ls
+crash<span class="hljs-number">.10354</span>.jpg  crash<span class="hljs-number">.2104</span>.jpg   crash<span class="hljs-number">.3368</span>.jpg   crash<span class="hljs-number">.45581</span>.jpg  crash<span class="hljs-number">.64750</span>.jpg  crash<span class="hljs-number">.77850</span>.jpg  crash<span class="hljs-number">.86367</span>.jpg  crash<span class="hljs-number">.94036</span>.jpg
+crash<span class="hljs-number">.12771</span>.jpg  crash<span class="hljs-number">.21126</span>.jpg  crash<span class="hljs-number">.35852</span>.jpg  crash<span class="hljs-number">.46757</span>.jpg  crash<span class="hljs-number">.64987</span>.jpg  crash<span class="hljs-number">.78452</span>.jpg  crash<span class="hljs-number">.86560</span>.jpg  crash<span class="hljs-number">.9435</span>.jpg
+crash<span class="hljs-number">.13341</span>.jpg  crash<span class="hljs-number">.23547</span>.jpg  crash<span class="hljs-number">.39494</span>.jpg  crash<span class="hljs-number">.46809</span>.jpg  crash<span class="hljs-number">.66340</span>.jpg  crash<span class="hljs-number">.78860</span>.jpg  crash<span class="hljs-number">.88799</span>.jpg  crash<span class="hljs-number">.94770</span>.jpg
+crash<span class="hljs-number">.14060</span>.jpg  crash<span class="hljs-number">.24492</span>.jpg  crash<span class="hljs-number">.40953</span>.jpg  crash<span class="hljs-number">.49520</span>.jpg  crash<span class="hljs-number">.6637</span>.jpg   crash<span class="hljs-number">.79019</span>.jpg  crash<span class="hljs-number">.89072</span>.jpg  crash<span class="hljs-number">.95438</span>.jpg
+crash<span class="hljs-number">.14905</span>.jpg  crash<span class="hljs-number">.25070</span>.jpg  crash<span class="hljs-number">.41505</span>.jpg  crash<span class="hljs-number">.50723</span>.jpg  crash<span class="hljs-number">.66389</span>.jpg  crash<span class="hljs-number">.79824</span>.jpg  crash<span class="hljs-number">.89738</span>.jpg  crash<span class="hljs-number">.95525</span>.jpg
+crash<span class="hljs-number">.18188</span>.jpg  crash<span class="hljs-number">.27783</span>.jpg  crash<span class="hljs-number">.41700</span>.jpg  crash<span class="hljs-number">.52051</span>.jpg  crash<span class="hljs-number">.6718</span>.jpg   crash<span class="hljs-number">.81206</span>.jpg  crash<span class="hljs-number">.90506</span>.jpg  crash<span class="hljs-number">.96746</span>.jpg
+crash<span class="hljs-number">.18350</span>.jpg  crash<span class="hljs-number">.2990</span>.jpg   crash<span class="hljs-number">.43509</span>.jpg  crash<span class="hljs-number">.54074</span>.jpg  crash<span class="hljs-number">.68527</span>.jpg  crash<span class="hljs-number">.8126</span>.jpg   crash<span class="hljs-number">.90648</span>.jpg  crash<span class="hljs-number">.98727</span>.jpg
+crash<span class="hljs-number">.19441</span>.jpg  crash<span class="hljs-number">.30599</span>.jpg  crash<span class="hljs-number">.43765</span>.jpg  crash<span class="hljs-number">.55183</span>.jpg  crash<span class="hljs-number">.6987</span>.jpg   crash<span class="hljs-number">.82472</span>.jpg  crash<span class="hljs-number">.90745</span>.jpg  crash<span class="hljs-number">.9969</span>.jpg
+crash<span class="hljs-number">.19581</span>.jpg  crash<span class="hljs-number">.31243</span>.jpg  crash<span class="hljs-number">.43813</span>.jpg  crash<span class="hljs-number">.5857</span>.jpg   crash<span class="hljs-number">.70713</span>.jpg  crash<span class="hljs-number">.83282</span>.jpg  crash<span class="hljs-number">.92426</span>.jpg
+crash<span class="hljs-number">.19907</span>.jpg  crash<span class="hljs-number">.31563</span>.jpg  crash<span class="hljs-number">.44974</span>.jpg  crash<span class="hljs-number">.59625</span>.jpg  crash<span class="hljs-number">.77590</span>.jpg  crash<span class="hljs-number">.83284</span>.jpg  crash<span class="hljs-number">.92775</span>.jpg
+crash<span class="hljs-number">.2010</span>.jpg   crash<span class="hljs-number">.32642</span>.jpg  crash<span class="hljs-number">.4554</span>.jpg   crash<span class="hljs-number">.64255</span>.jpg  crash<span class="hljs-number">.77787</span>.jpg  crash<span class="hljs-number">.84766</span>.jpg  crash<span class="hljs-number">.92906</span>.jpg</code></pre>
+
+<p>这有一堆<code>crashes</code></p>
+<h2 id="Getting-Serious-Conclusion"><a href="#Getting-Serious-Conclusion" class="headerlink" title="Getting Serious, Conclusion"></a>Getting Serious, Conclusion</h2><p><code>fuzzer</code>可以进行很多优化，目前它真的很粗糙，只是为了演示非常基本的编译<code>fuzzing</code>，<code>bug</code>分类过程也是一团糟，感觉整个过程都很<code>hacky</code>，我想我需要看更多<code>@gamozolabs</code>的视频，也许下次我们进行模糊测试时，我们会尝试一个更难的目标，用<code>Rust</code>或<code>Go</code>等很酷的语言编写模糊测试，我们将会尝试真正改进分类过程/利用其中一个<code>bugs</code>！</p>
+<p>感谢博文中提到的每个人，非常感谢</p>
+<p>直到下一次！</p>
+<h2 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h2><p><code>JPEGfuzz.py</code></p>
+<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+
+import sys
+import random
+from pexpect import run
+from pipes import quote
+
+# read bytes from our valid JPEG and return them in a mutable bytearray 
+def get_bytes(filename):
+
+	f &#x3D; open(filename, &quot;rb&quot;).read()
+
+	return bytearray(f)
+
+def bit_flip(data):
+
+	num_of_flips &#x3D; int((len(data) - 4) * .01)
+
+	indexes &#x3D; range(4, (len(data) - 4))
+
+	chosen_indexes &#x3D; []
+
+	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
+	counter &#x3D; 0
+	while counter &lt; num_of_flips:
+		chosen_indexes.append(random.choice(indexes))
+		counter +&#x3D; 1
+
+	for x in chosen_indexes:
+		current &#x3D; data[x]
+		current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
+		current &#x3D; &quot;0&quot; * (8 - len(current)) + current
+		
+		indexes &#x3D; range(0,8)
+
+		picked_index &#x3D; random.choice(indexes)
+
+		new_number &#x3D; []
+
+		# our new_number list now has all the digits, example: [&#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;]
+		for i in current:
+			new_number.append(i)
+
+		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
+		if new_number[picked_index] &#x3D;&#x3D; &quot;1&quot;:
+			new_number[picked_index] &#x3D; &quot;0&quot;
+		else:
+			new_number[picked_index] &#x3D; &quot;1&quot;
+
+		# create our new binary string of our bit-flipped number
+		current &#x3D; &#39;&#39;
+		for i in new_number:
+			current +&#x3D; i
+
+		# convert that string to an integer
+		current &#x3D; int(current,2)
+
+		# change the number in our byte array to our new number we just constructed
+		data[x] &#x3D; current
+
+	return data
+
+def magic(data):
+
+	magic_vals &#x3D; [
+	(1, 255),
+	(1, 255),
+	(1, 127),
+	(1, 0),
+	(2, 255),
+	(2, 0),
+	(4, 255),
+	(4, 0),
+	(4, 128),
+	(4, 64),
+	(4, 127)
+	]
+
+	picked_magic &#x3D; random.choice(magic_vals)
+
+	length &#x3D; len(data) - 8
+	index &#x3D; range(0, length)
+	picked_index &#x3D; random.choice(index)
+
+	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
+	if picked_magic[0] &#x3D;&#x3D; 1:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFF
+			data[picked_index] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 127:		# 0x7F
+			data[picked_index] &#x3D; 127
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00
+			data[picked_index] &#x3D; 0
+
+	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
+	elif picked_magic[0] &#x3D;&#x3D; 2:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFF
+			data[picked_index] &#x3D; 255
+			data[picked_index + 1] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x0000
+			data[picked_index] &#x3D; 0
+			data[picked_index + 1] &#x3D; 0
+
+	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
+	elif picked_magic[0] &#x3D;&#x3D; 4:
+		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFFFFFF
+			data[picked_index] &#x3D; 255
+			data[picked_index + 1] &#x3D; 255
+			data[picked_index + 2] &#x3D; 255
+			data[picked_index + 3] &#x3D; 255
+		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00000000
+			data[picked_index] &#x3D; 0
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 128:		# 0x80000000
+			data[picked_index] &#x3D; 128
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 64:			# 0x40000000
+			data[picked_index] &#x3D; 64
+			data[picked_index + 1] &#x3D; 0
+			data[picked_index + 2] &#x3D; 0
+			data[picked_index + 3] &#x3D; 0
+		elif picked_magic[1] &#x3D;&#x3D; 127:		# 0x7FFFFFFF
+			data[picked_index] &#x3D; 127
+			data[picked_index + 1] &#x3D; 255
+			data[picked_index + 2] &#x3D; 255
+			data[picked_index + 3] &#x3D; 255
+		
+	return data
+
+# create new jpg with mutated data
+def create_new(data):
+
+	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
+	f.write(data)
+	f.close()
+
+def exif(counter,data):
+
+    command &#x3D; &quot;exif mutated.jpg -verbose&quot;
+
+    out, returncode &#x3D; run(&quot;sh -c &quot; + quote(command), withexitstatus&#x3D;1)
+
+    if b&quot;Segmentation&quot; in out:
+    	f &#x3D; open(&quot;crashes2&#x2F;crash.&#123;&#125;.jpg&quot;.format(str(counter)), &quot;ab+&quot;)
+    	f.write(data)
+
+    if counter % 100 &#x3D;&#x3D; 0:
+    	print(counter, end&#x3D;&quot;\r&quot;)
+
+if len(sys.argv) &lt; 2:
+	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
+
+else:
+	filename &#x3D; sys.argv[1]
+	counter &#x3D; 0
+	while counter &lt; 100000:
+		data &#x3D; get_bytes(filename)
+		functions &#x3D; [0, 1]
+		picked_function &#x3D; random.choice(functions)
+		if picked_function &#x3D;&#x3D; 0:
+			mutated &#x3D; magic(data)
+			create_new(mutated)
+			exif(counter,mutated)
+		else:
+			mutated &#x3D; bit_flip(data)
+			create_new(mutated)
+			exif(counter,mutated)
+
+		counter +&#x3D; 1</code></pre>
+
+<p><code>triage.py</code></p>
+<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+
+import os
+from os import listdir
+
+def get_files():
+
+	files &#x3D; os.listdir(&quot;&#x2F;root&#x2F;crashes&#x2F;&quot;)
+
+	return files
+
+def triage_files(files):
+
+	for x in files:
+
+		original_output &#x3D; os.popen(&quot;exifsan &quot; + x + &quot; -verbose 2&gt;&amp;1&quot;).read()
+		output &#x3D; original_output
+		
+		# Getting crash reason
+		crash &#x3D; &#39;&#39;
+		if &quot;SEGV&quot; in output:
+			crash &#x3D; &quot;SEGV&quot;
+		elif &quot;heap-buffer-overflow&quot; in output:
+			crash &#x3D; &quot;HBO&quot;
+		else:
+			crash &#x3D; &quot;UNKNOWN&quot;
+		
+
+		if crash &#x3D;&#x3D; &quot;HBO&quot;:
+			output &#x3D; output.split(&quot;\n&quot;)
+			counter &#x3D; 0
+			while counter &lt; len(output):
+				if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
+					target_line &#x3D; output[counter + 1]
+					target_line2 &#x3D; output[counter + 2]
+					counter +&#x3D; 1
+				else:
+					counter +&#x3D; 1
+			target_line &#x3D; target_line.split(&quot; &quot;)
+			address &#x3D; target_line[5].replace(&quot;0x&quot;,&quot;&quot;)
+			
+
+			target_line2 &#x3D; target_line2.split(&quot; &quot;)
+			operation &#x3D; target_line2[0]
+			
+
+		elif crash &#x3D;&#x3D; &quot;SEGV&quot;:
+			output &#x3D; output.split(&quot;\n&quot;)
+			counter &#x3D; 0
+			while counter &lt; len(output):
+				if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
+					target_line &#x3D; output[counter + 1]
+					target_line2 &#x3D; output[counter + 2]
+					counter +&#x3D; 1
+				else:
+					counter +&#x3D; 1
+			if &quot;unknown address&quot; in target_line:
+				address &#x3D; &quot;00000000&quot;
+			else:
+				address &#x3D; None
+
+			if &quot;READ&quot; in target_line2:
+				operation &#x3D; &quot;READ&quot;
+			elif &quot;WRITE&quot; in target_line2:
+				operation &#x3D; &quot;WRITE&quot;
+			else:
+				operation &#x3D; None
+
+		log_name &#x3D; (x.replace(&quot;.jpg&quot;,&quot;&quot;) + &quot;.&quot; + crash + &quot;.&quot; + address + &quot;.&quot; + operation)
+		f &#x3D; open(log_name,&quot;w+&quot;)
+		f.write(original_output)
+		f.close()
+
+
+
+files &#x3D; get_files()
+triage_files(files)</code></pre>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Fuzz/">Fuzz</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/fuzz/">fuzz</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/03/29/wps%20fuzz/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">对wps的qtcore的某一接口fuzz</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/10/Plaid%20CTF%20dr/">
+                        <span class="hidden-mobile">Plaid CTF dr</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Fuzzing Like A Caveman 翻译&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
