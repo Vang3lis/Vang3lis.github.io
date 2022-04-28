@@ -13,13 +13,13 @@ layout: about
 ## 👨‍💻 博主是谁
 
 Vang3lis
-菜鸡，摸鱼，快乐
+菜鸡，摸鱼，~~快乐（已经不快乐了）~~，想做科研但是做不出来的咸鱼
 
 ## ⛹ 兴趣爱好
 
-Dota2
+~~Dota2（Ti10 PTSD）~~
 
 ## 📬 联系我呀
 
-E-mail: vang3lis.0x13@gmail.com
+E-mail: vang3lis@163.com
 Github: [https://github.com/Vang3lis](https://github.com/Vang3lis)
