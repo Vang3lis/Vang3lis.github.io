@@ -1,5 +1,5 @@
 ---
-title: 'Fuzzing Like A Caveman 翻译'
+title: 'Fuzzing Like A Caveman 译'
 date: 2022-04-28 21:00:21
 category: Fuzz
 tags: [fuzz]
@@ -10,8 +10,6 @@ isTop: false
 ---
 
 原文为 [Fuzzing-Like-A-Caveman](https://h0mbre.github.io/Fuzzing-Like-A-Caveman)，本文章仅为个人理解的翻译和备份
-
-[toc]
 
 ## Intoduction
 
@@ -76,34 +74,34 @@ root@kali:~# hexdump Canon
 
 我们的代码将会从写成这样开始：
 
-```python3
+```python
 #!/usr/bin/env python3
 
 import sys
 
 # read bytes from our valid JPEG and return them in a mutable bytearray 
 def get_bytes(filename):
-	f = open(filename, "rb").read()
-	return bytearray(f)
+    f = open(filename, "rb").read()
+    return bytearray(f)
 
 if len(sys.argv) < 2:
-	print("Usage: JPEGfuzz.py <valid_jpg>")
+    print("Usage: JPEGfuzz.py <valid_jpg>")
 else:
-	filename = sys.argv[1]
-	data = get_bytes(filename)
+    filename = sys.argv[1]
+    data = get_bytes(filename)
 ```
 
 如果我们希望看到这个数据是长什么样的，我们可以在数组中打印最初10个左右的字节值，然后看看我们将会如何与其进行交互，我们将仅是临时添加一些类似如下的东西：
 
-```python3
+```python
 else:
-	filename = sys.argv[1]
-	data = get_bytes(filename)
-	counter = 0
-	for x in data:
-		if counter < 10:
-			print(x)
-		counter += 1
+    filename = sys.argv[1]
+    data = get_bytes(filename)
+    counter = 0
+    for x in data:
+        if counter < 10:
+            print(x)
+        counter += 1
 ```
 
 运行这个，显示我们正将其转换为整齐的十进制整数，在我看来，这让一切变得更为容易。
@@ -124,11 +122,11 @@ root@kali:~# python3 fuzzer.py Canon_40D.jpg
 
 让我们快速地看看是否可以从我们的字节数组中创建一个新的合规的 `JPEG`，我们将把这个函数添加到我们的代码中并运行它。
 
-```python3
+```python
 def create_new(data):
-	f = open("mutated.jpg", "wb+")
-	f.write(data)
-	f.close()
+    f = open("mutated.jpg", "wb+")
+    f.write(data)
+    f.close()
 ```
 
 所以现在在我们的字典中可以获得一个`mutated.jpg`，让我们`hash`比较这两个文件，看它们是否匹配的上.
@@ -162,7 +160,7 @@ num_of_flips = int((len(data) - 4) * .01)
 
 接下来我们将想要随机选择许多的`indexes`然后将这些`indexes`作为位翻转的目标，我们将继续创建一组可以修改的可能的`indexes`，然后选择其中的`num_of_flips`个进行随机的位翻转。
 
-```python3
+```python
 indexes = range(4, (len(data) - 4))
 
 chosen_indexes = []
@@ -170,34 +168,34 @@ chosen_indexes = []
 # iterate selecting indexes until we've hit our num_of_flips number
 counter = 0
 while counter < num_of_flips:
-	chosen_indexes.append(random.choice(indexes))
-	counter += 1
+    chosen_indexes.append(random.choice(indexes))
+    counter += 1
 ```
 
 让我们把`import random`加到我们的`script`中，并添加这些`debug`的`print`状态以确保所有的一切都能成功运转。
 
-```python3
+```python
 print("Number of indexes chosen: " + str(len(chosen_indexes)))
 print("Indexes chosen: " + str(chosen_indexes))
 ```
 
 我们的`function`现在是像这样：
 
-```python3
+```python
 def bit_flip(data):
-	num_of_flips = int((len(data) - 4) * .01)
-	indexes = range(4, (len(data) - 4))
+    num_of_flips = int((len(data) - 4) * .01)
+    indexes = range(4, (len(data) - 4))
 
-	chosen_indexes = []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we've hit our num_of_flips number
-	counter = 0
-	while counter < num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter += 1
+    # iterate selecting indexes until we've hit our num_of_flips number
+    counter = 0
+    while counter < num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += 1
 
-	print("Number of indexes chosen: " + str(len(chosen_indexes)))
-	print("Indexes chosen: " + str(chosen_indexes))
+    print("Number of indexes chosen: " + str(len(chosen_indexes)))
+    print("Indexes chosen: " + str(chosen_indexes))
 ```
 
 如果我们跑这个脚本，我们将会得到一个预期的不错的输出。
@@ -210,7 +208,7 @@ Indexes chosen: [6580, 930, 6849, 6007, 5020, 33, 474, 4051, 7722, 5393, 3540, 5
 
 接下来我们需要实际变异这些`indexes`上的字节，我们需要位翻转他们，我选择用一个非常`hacky`的方式去做这件事，你尽可以随意的实现你自己的方法，我们准备转换这些`indexes`上的字节到二进制字符串，并将其补齐为8位数长，让我们添加这个代码，看看我们在说些什么，我们将会转换这字节的值（就是转为十进制）到二进制串，并如果它少于8位数长时在其前面填充0，这最后一行就是调试时的临时打印。
 
-```python3
+```python
 for x in chosen_indexes:
     current = data[x]
     current = (bin(current).replace("0b",""))
@@ -239,7 +237,7 @@ root@kali:~# python3 fuzzer.py Canon_40D.jpg
 
 我们的全部脚本目前是像这样：
 
-```python3
+```python
 #!/usr/bin/env python3
 
 import sys
@@ -247,70 +245,70 @@ import random
 
 # read bytes from our valid JPEG and return them in a mutable bytearray 
 def get_bytes(filename):
-	f = open(filename, "rb").read()
-	return bytearray(f)
+    f = open(filename, "rb").read()
+    return bytearray(f)
 
 def bit_flip(data):
-	num_of_flips = int((len(data) - 4) * .01)
-	indexes = range(4, (len(data) - 4))
+    num_of_flips = int((len(data) - 4) * .01)
+    indexes = range(4, (len(data) - 4))
 
-	chosen_indexes = []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we've hit our num_of_flips number
-	counter = 0
-	while counter < num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter += 1
+    # iterate selecting indexes until we've hit our num_of_flips number
+    counter = 0
+    while counter < num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += 1
 
-	for x in chosen_indexes:
-		current = data[x]
-		current = (bin(current).replace("0b",""))
-		current = "0" * (8 - len(current)) + current
-		
-		indexes = range(0,8)
+    for x in chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace("0b",""))
+        current = "0" * (8 - len(current)) + current
+        
+        indexes = range(0,8)
 
-		picked_index = random.choice(indexes)
+        picked_index = random.choice(indexes)
 
-		new_number = []
+        new_number = []
 
-		# our new_number list now has all the digits, example: ['1', '0', '1', '0', '1', '0', '1', '0']
-		for i in current:
-			new_number.append(i)
+        # our new_number list now has all the digits, example: ['1', '0', '1', '0', '1', '0', '1', '0']
+        for i in current:
+            new_number.append(i)
 
-		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
-		if new_number[picked_index] == "1":
-			new_number[picked_index] = "0"
-		else:
-			new_number[picked_index] = "1"
+        # if the number at our randomly selected index is a 1, make it a 0, and vice versa
+        if new_number[picked_index] == "1":
+            new_number[picked_index] = "0"
+        else:
+            new_number[picked_index] = "1"
 
-		# create our new binary string of our bit-flipped number
-		current = ''
-		for i in new_number:
-			current += i
+        # create our new binary string of our bit-flipped number
+        current = ''
+        for i in new_number:
+            current += i
 
-		# convert that string to an integer
-		current = int(current,2)
+        # convert that string to an integer
+        current = int(current,2)
 
-		# change the number in our byte array to our new number we just constructed
-		data[x] = current
+        # change the number in our byte array to our new number we just constructed
+        data[x] = current
 
-	return data
+    return data
 
 
 # create new jpg with mutated data
 def create_new(data):
-	f = open("mutated.jpg", "wb+")
-	f.write(data)
-	f.close()
+    f = open("mutated.jpg", "wb+")
+    f.write(data)
+    f.close()
 
 if len(sys.argv) < 2:
-	print("Usage: JPEGfuzz.py <valid_jpg>")
+    print("Usage: JPEGfuzz.py <valid_jpg>")
 
 else:
-	filename = sys.argv[1]
-	data = get_bytes(filename)
-	mutated_data = bit_flip(data)
-	create_new(mutated_data)
+    filename = sys.argv[1]
+    data = get_bytes(filename)
+    mutated_data = bit_flip(data)
+    create_new(mutated_data)
 ```
 
 ## Analyzing Mutation
@@ -354,25 +352,25 @@ a7b619028af3d8e5ac106a697b06efcde0649249  mutated.jpg
 
 首先我们将想要创建一个类似`Gynvael`做的一个元组列表，在这元组中的第一个数字是`magic numbers`的字节数，第二个数字是十进制上的字节的值。
 
-```python3
+```python
 def magic(data):
-	magic_vals = [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+    magic_vals = [
+    (1, 255),
+    (1, 255),
+    (1, 127),
+    (1, 0),
+    (2, 255),
+    (2, 0),
+    (4, 255),
+    (4, 0),
+    (4, 128),
+    (4, 64),
+    (4, 127)
+    ]
 
-	picked_magic = random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	print(picked_magic)
+    print(picked_magic)
 ```
 
 如果我们跑这个脚本，我门就可以看到它随机在取一个`magic`值元组
@@ -394,7 +392,7 @@ root@kali:~# python3 fuzzer.py Canon_40D.jpg
 
 所以，如果例如我们取的是`(4, 128)`，我们知道这是4个字节，所以这个魔数是`0x80000000`，所以我们将做些类似如下的事情：
 
-```python3
+```python
 byte[x] = 128
 byte[x+1] = 0
 byte[x+2] = 0
@@ -403,75 +401,75 @@ byte[x+3] = 0
 
 总而言之，我们的函数如下所示：
 
-```python3
+```python
 def magic(data):
-	magic_vals = [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+    magic_vals = [
+    (1, 255),
+    (1, 255),
+    (1, 127),
+    (1, 0),
+    (2, 255),
+    (2, 0),
+    (4, 255),
+    (4, 0),
+    (4, 128),
+    (4, 64),
+    (4, 127)
+    ]
 
-	picked_magic = random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	length = len(data) - 8
-	index = range(0, length)
-	picked_index = random.choice(index)
+    length = len(data) - 8
+    index = range(0, length)
+    picked_index = random.choice(index)
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
-	if picked_magic[0] == 1:
-		if picked_magic[1] == 255:			# 0xFF
-			data[picked_index] = 255
-		elif picked_magic[1] == 127:			# 0x7F
-			data[picked_index] = 127
-		elif picked_magic[1] == 0:			# 0x00
-			data[picked_index] = 0
+    # here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
+    if picked_magic[0] == 1:
+        if picked_magic[1] == 255:			# 0xFF
+            data[picked_index] = 255
+        elif picked_magic[1] == 127:			# 0x7F
+            data[picked_index] = 127
+        elif picked_magic[1] == 0:			# 0x00
+            data[picked_index] = 0
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
-	elif picked_magic[0] == 2:
-		if picked_magic[1] == 255:			# 0xFFFF
-			data[picked_index] = 255
-			data[picked_index + 1] = 255
-		elif picked_magic[1] == 0:			# 0x0000
-			data[picked_index] = 0
-			data[picked_index + 1] = 0
+    # here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
+    elif picked_magic[0] == 2:
+        if picked_magic[1] == 255:			# 0xFFFF
+            data[picked_index] = 255
+            data[picked_index + 1] = 255
+        elif picked_magic[1] == 0:			# 0x0000
+            data[picked_index] = 0
+            data[picked_index + 1] = 0
 
-	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
-	elif picked_magic[0] == 4:
-		if picked_magic[1] == 255:			# 0xFFFFFFFF
-			data[picked_index] = 255
-			data[picked_index + 1] = 255
-			data[picked_index + 2] = 255
-			data[picked_index + 3] = 255
-		elif picked_magic[1] == 0:			# 0x00000000
-			data[picked_index] = 0
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 128:			# 0x80000000
-			data[picked_index] = 128
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 64:			# 0x40000000
-			data[picked_index] = 64
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 127:			# 0x7FFFFFFF
-			data[picked_index] = 127
-			data[picked_index + 1] = 255
-			data[picked_index + 2] = 255
-			data[picked_index + 3] = 255
-		
-	return data
+    # here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
+    elif picked_magic[0] == 4:
+        if picked_magic[1] == 255:			# 0xFFFFFFFF
+            data[picked_index] = 255
+            data[picked_index + 1] = 255
+            data[picked_index + 2] = 255
+            data[picked_index + 3] = 255
+        elif picked_magic[1] == 0:			# 0x00000000
+            data[picked_index] = 0
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 128:			# 0x80000000
+            data[picked_index] = 128
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 64:			# 0x40000000
+            data[picked_index] = 64
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 127:			# 0x7FFFFFFF
+            data[picked_index] = 127
+            data[picked_index + 1] = 255
+            data[picked_index + 2] = 255
+            data[picked_index + 3] = 255
+        
+    return data
 ```
 
 ## Analyzing Mutation #2
@@ -635,18 +633,18 @@ Exif IFD : DateTimeOriginal = [2008:05:30 15:56:01]
 
 我们将持续以保持每100次模糊测试迭代的计数打印到终端的同一行，我们的函数如下所示：
 
-```python3
+```python
 def exif(counter,data):
     command = "exif mutated.jpg -verbose"
 
     out, returncode = run("sh -c " + quote(command), withexitstatus=1)
 
     if b"Segmentation" in out:
-    	f = open("crashes/crash.{}.jpg".format(str(counter)), "ab+")
-    	f.write(data)
+        f = open("crashes/crash.{}.jpg".format(str(counter)), "ab+")
+        f.write(data)
 
     if counter % 100 == 0:
-    	print(counter, end="\r")
+        print(counter, end="\r")
 ```
 
 接下来，我们将在我们代码的最下面替换我们执行的`stub`以跑一个计数器，一旦我们达到了`1000`次迭代，我们就停止`fuzzing`，我们也将让我们的`fuzzer`随机选择一个我们变异的方法，所以它或使用位翻转或使用魔数，让我们运行它，然后在结束时检测我们的`crashes`文件夹。
@@ -814,7 +812,7 @@ crash.2010.jpg   crash.32642.jpg  crash.4554.jpg   crash.64255.jpg  crash.77787.
 
 `JPEGfuzz.py`
 
-```python3
+```python
 #!/usr/bin/env python3
 
 import sys
@@ -825,134 +823,134 @@ from pipes import quote
 # read bytes from our valid JPEG and return them in a mutable bytearray 
 def get_bytes(filename):
 
-	f = open(filename, "rb").read()
+    f = open(filename, "rb").read()
 
-	return bytearray(f)
+    return bytearray(f)
 
 def bit_flip(data):
 
-	num_of_flips = int((len(data) - 4) * .01)
+    num_of_flips = int((len(data) - 4) * .01)
 
-	indexes = range(4, (len(data) - 4))
+    indexes = range(4, (len(data) - 4))
 
-	chosen_indexes = []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we've hit our num_of_flips number
-	counter = 0
-	while counter < num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter += 1
+    # iterate selecting indexes until we've hit our num_of_flips number
+    counter = 0
+    while counter < num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += 1
 
-	for x in chosen_indexes:
-		current = data[x]
-		current = (bin(current).replace("0b",""))
-		current = "0" * (8 - len(current)) + current
-		
-		indexes = range(0,8)
+    for x in chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace("0b",""))
+        current = "0" * (8 - len(current)) + current
+        
+        indexes = range(0,8)
 
-		picked_index = random.choice(indexes)
+        picked_index = random.choice(indexes)
 
-		new_number = []
+        new_number = []
 
-		# our new_number list now has all the digits, example: ['1', '0', '1', '0', '1', '0', '1', '0']
-		for i in current:
-			new_number.append(i)
+        # our new_number list now has all the digits, example: ['1', '0', '1', '0', '1', '0', '1', '0']
+        for i in current:
+            new_number.append(i)
 
-		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
-		if new_number[picked_index] == "1":
-			new_number[picked_index] = "0"
-		else:
-			new_number[picked_index] = "1"
+        # if the number at our randomly selected index is a 1, make it a 0, and vice versa
+        if new_number[picked_index] == "1":
+            new_number[picked_index] = "0"
+        else:
+            new_number[picked_index] = "1"
 
-		# create our new binary string of our bit-flipped number
-		current = ''
-		for i in new_number:
-			current += i
+        # create our new binary string of our bit-flipped number
+        current = ''
+        for i in new_number:
+            current += i
 
-		# convert that string to an integer
-		current = int(current,2)
+        # convert that string to an integer
+        current = int(current,2)
 
-		# change the number in our byte array to our new number we just constructed
-		data[x] = current
+        # change the number in our byte array to our new number we just constructed
+        data[x] = current
 
-	return data
+    return data
 
 def magic(data):
 
-	magic_vals = [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+    magic_vals = [
+    (1, 255),
+    (1, 255),
+    (1, 127),
+    (1, 0),
+    (2, 255),
+    (2, 0),
+    (4, 255),
+    (4, 0),
+    (4, 128),
+    (4, 64),
+    (4, 127)
+    ]
 
-	picked_magic = random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	length = len(data) - 8
-	index = range(0, length)
-	picked_index = random.choice(index)
+    length = len(data) - 8
+    index = range(0, length)
+    picked_index = random.choice(index)
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
-	if picked_magic[0] == 1:
-		if picked_magic[1] == 255:			# 0xFF
-			data[picked_index] = 255
-		elif picked_magic[1] == 127:		# 0x7F
-			data[picked_index] = 127
-		elif picked_magic[1] == 0:			# 0x00
-			data[picked_index] = 0
+    # here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
+    if picked_magic[0] == 1:
+        if picked_magic[1] == 255:			# 0xFF
+            data[picked_index] = 255
+        elif picked_magic[1] == 127:		# 0x7F
+            data[picked_index] = 127
+        elif picked_magic[1] == 0:			# 0x00
+            data[picked_index] = 0
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
-	elif picked_magic[0] == 2:
-		if picked_magic[1] == 255:			# 0xFFFF
-			data[picked_index] = 255
-			data[picked_index + 1] = 255
-		elif picked_magic[1] == 0:			# 0x0000
-			data[picked_index] = 0
-			data[picked_index + 1] = 0
+    # here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
+    elif picked_magic[0] == 2:
+        if picked_magic[1] == 255:			# 0xFFFF
+            data[picked_index] = 255
+            data[picked_index + 1] = 255
+        elif picked_magic[1] == 0:			# 0x0000
+            data[picked_index] = 0
+            data[picked_index + 1] = 0
 
-	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
-	elif picked_magic[0] == 4:
-		if picked_magic[1] == 255:			# 0xFFFFFFFF
-			data[picked_index] = 255
-			data[picked_index + 1] = 255
-			data[picked_index + 2] = 255
-			data[picked_index + 3] = 255
-		elif picked_magic[1] == 0:			# 0x00000000
-			data[picked_index] = 0
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 128:		# 0x80000000
-			data[picked_index] = 128
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 64:			# 0x40000000
-			data[picked_index] = 64
-			data[picked_index + 1] = 0
-			data[picked_index + 2] = 0
-			data[picked_index + 3] = 0
-		elif picked_magic[1] == 127:		# 0x7FFFFFFF
-			data[picked_index] = 127
-			data[picked_index + 1] = 255
-			data[picked_index + 2] = 255
-			data[picked_index + 3] = 255
-		
-	return data
+    # here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
+    elif picked_magic[0] == 4:
+        if picked_magic[1] == 255:			# 0xFFFFFFFF
+            data[picked_index] = 255
+            data[picked_index + 1] = 255
+            data[picked_index + 2] = 255
+            data[picked_index + 3] = 255
+        elif picked_magic[1] == 0:			# 0x00000000
+            data[picked_index] = 0
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 128:		# 0x80000000
+            data[picked_index] = 128
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 64:			# 0x40000000
+            data[picked_index] = 64
+            data[picked_index + 1] = 0
+            data[picked_index + 2] = 0
+            data[picked_index + 3] = 0
+        elif picked_magic[1] == 127:		# 0x7FFFFFFF
+            data[picked_index] = 127
+            data[picked_index + 1] = 255
+            data[picked_index + 2] = 255
+            data[picked_index + 3] = 255
+        
+    return data
 
 # create new jpg with mutated data
 def create_new(data):
 
-	f = open("mutated.jpg", "wb+")
-	f.write(data)
-	f.close()
+    f = open("mutated.jpg", "wb+")
+    f.write(data)
+    f.close()
 
 def exif(counter,data):
 
@@ -961,32 +959,32 @@ def exif(counter,data):
     out, returncode = run("sh -c " + quote(command), withexitstatus=1)
 
     if b"Segmentation" in out:
-    	f = open("crashes2/crash.{}.jpg".format(str(counter)), "ab+")
-    	f.write(data)
+        f = open("crashes2/crash.{}.jpg".format(str(counter)), "ab+")
+        f.write(data)
 
     if counter % 100 == 0:
-    	print(counter, end="\r")
+        print(counter, end="\r")
 
 if len(sys.argv) < 2:
-	print("Usage: JPEGfuzz.py <valid_jpg>")
+    print("Usage: JPEGfuzz.py <valid_jpg>")
 
 else:
-	filename = sys.argv[1]
-	counter = 0
-	while counter < 100000:
-		data = get_bytes(filename)
-		functions = [0, 1]
-		picked_function = random.choice(functions)
-		if picked_function == 0:
-			mutated = magic(data)
-			create_new(mutated)
-			exif(counter,mutated)
-		else:
-			mutated = bit_flip(data)
-			create_new(mutated)
-			exif(counter,mutated)
+    filename = sys.argv[1]
+    counter = 0
+    while counter < 100000:
+        data = get_bytes(filename)
+        functions = [0, 1]
+        picked_function = random.choice(functions)
+        if picked_function == 0:
+            mutated = magic(data)
+            create_new(mutated)
+            exif(counter,mutated)
+        else:
+            mutated = bit_flip(data)
+            create_new(mutated)
+            exif(counter,mutated)
 
-		counter += 1
+        counter += 1
 ```
 
 `triage.py`
@@ -999,71 +997,71 @@ from os import listdir
 
 def get_files():
 
-	files = os.listdir("/root/crashes/")
+    files = os.listdir("/root/crashes/")
 
-	return files
+    return files
 
 def triage_files(files):
 
-	for x in files:
+    for x in files:
 
-		original_output = os.popen("exifsan " + x + " -verbose 2>&1").read()
-		output = original_output
-		
-		# Getting crash reason
-		crash = ''
-		if "SEGV" in output:
-			crash = "SEGV"
-		elif "heap-buffer-overflow" in output:
-			crash = "HBO"
-		else:
-			crash = "UNKNOWN"
-		
+        original_output = os.popen("exifsan " + x + " -verbose 2>&1").read()
+        output = original_output
+        
+        # Getting crash reason
+        crash = ''
+        if "SEGV" in output:
+            crash = "SEGV"
+        elif "heap-buffer-overflow" in output:
+            crash = "HBO"
+        else:
+            crash = "UNKNOWN"
+        
 
-		if crash == "HBO":
-			output = output.split("\n")
-			counter = 0
-			while counter < len(output):
-				if output[counter] == "=================================================================":
-					target_line = output[counter + 1]
-					target_line2 = output[counter + 2]
-					counter += 1
-				else:
-					counter += 1
-			target_line = target_line.split(" ")
-			address = target_line[5].replace("0x","")
-			
+        if crash == "HBO":
+            output = output.split("\n")
+            counter = 0
+            while counter < len(output):
+                if output[counter] == "=================================================================":
+                    target_line = output[counter + 1]
+                    target_line2 = output[counter + 2]
+                    counter += 1
+                else:
+                    counter += 1
+            target_line = target_line.split(" ")
+            address = target_line[5].replace("0x","")
+            
 
-			target_line2 = target_line2.split(" ")
-			operation = target_line2[0]
-			
+            target_line2 = target_line2.split(" ")
+            operation = target_line2[0]
+            
 
-		elif crash == "SEGV":
-			output = output.split("\n")
-			counter = 0
-			while counter < len(output):
-				if output[counter] == "=================================================================":
-					target_line = output[counter + 1]
-					target_line2 = output[counter + 2]
-					counter += 1
-				else:
-					counter += 1
-			if "unknown address" in target_line:
-				address = "00000000"
-			else:
-				address = None
+        elif crash == "SEGV":
+            output = output.split("\n")
+            counter = 0
+            while counter < len(output):
+                if output[counter] == "=================================================================":
+                    target_line = output[counter + 1]
+                    target_line2 = output[counter + 2]
+                    counter += 1
+                else:
+                    counter += 1
+            if "unknown address" in target_line:
+                address = "00000000"
+            else:
+                address = None
 
-			if "READ" in target_line2:
-				operation = "READ"
-			elif "WRITE" in target_line2:
-				operation = "WRITE"
-			else:
-				operation = None
+            if "READ" in target_line2:
+                operation = "READ"
+            elif "WRITE" in target_line2:
+                operation = "WRITE"
+            else:
+                operation = None
 
-		log_name = (x.replace(".jpg","") + "." + crash + "." + address + "." + operation)
-		f = open(log_name,"w+")
-		f.write(original_output)
-		f.close()
+        log_name = (x.replace(".jpg","") + "." + crash + "." + address + "." + operation)
+        f = open(log_name,"w+")
+        f.write(original_output)
+        f.close()
 
 
 
