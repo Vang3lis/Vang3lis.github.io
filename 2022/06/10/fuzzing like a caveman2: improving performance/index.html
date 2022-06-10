@@ -1,0 +1,1494 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Vang3lis">
+  <meta name="keywords" content="">
+  <title>Fuzzing Like A Caveman2: Improving Performance 译 - Vang3lis&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_6peoq002giu.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>0x13</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+  <div class="mt-3 post-meta">
+    <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+    <time datetime="2022-06-11 00:47" pubdate>
+      2022年6月11日 凌晨
+    </time>
+  </div>
+
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      9.1k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      146
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Fuzzing Like A Caveman2: Improving Performance 译</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <p>原文为 <a target="_blank" rel="noopener" href="https://h0mbre.github.io/Fuzzing-Like-a-Caveman-2">Fuzzing Like A Caveman 2: Improving Performance</a>，本文章仅为个人理解的翻译和备份</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>在<code>Fuzzing like a Caveman</code>一节中（讲述了编写<code>fuzzer</code>），我们将关注提升我们之前<code>fuzzer</code>的性能，这意味着这将不会有任何大规模的改变，我们仅关注提升我们之前那篇博客做的东西，这意味着在这篇博文结束时我们最终还是会带着一个非常基本的<code>fuzzer</code>（仅让它变得更快！！），希望在不同目标上能发现更多的<code>bugs</code>，在这篇文章中，我们不会真正修改多线程或多进程，我们会将其保存到后续的<code>fuzzing</code>文章中</p>
+<p>我觉得我需要在这里加一个<strong>免责声明</strong>，我远不是一个专业的开发者，在这一点上，我只是没有足够的编程经验像一个更有经验的程序员那样来识别提高性能的机会，我将使用我粗略的技术和有限的编程知识来改进我们之前的<code>fuzzer</code>，嗯就是这样，这个生成的代码将不漂亮，不完美，但是它会比我上一篇的文章做的<code>fuzzer</code>更好，这需要提到，所有的测试都是在<code>VMWare Workstation</code>中的<code>1 CPU 1 Core</code>的<code>x86 Kali</code>虚拟机上</p>
+<p>让我们花点时间在这篇博客中定义<code>better</code>，我这里所说的<code>better</code>是我们可以在n次<code>fuzzing</code>迭代中会更快迭代，就是这样，我们将花点时间完成重写<code>fuzzer</code>、用一个更酷的语言、选择一个更稳固的目标并在以后用更先进的模糊测试技术</p>
+<p><strong>很明显，如果你还没阅读上一篇文章，你将会跟不上！</strong></p>
+<h2 id="Analyzing-Our-Fuzzer"><a href="#Analyzing-Our-Fuzzer" class="headerlink" title="Analyzing Our Fuzzer"></a>Analyzing Our Fuzzer</h2><p>很明显，我们最后的<code>fuzzer</code>是起作用的！我们在我们的目标文件中发现了一些<code>bugs</code>，但是我们知道当我们完成<code>fuzzer</code>时，我们还遗漏了一些优化，让我们再看看上一篇文章中的<code>fuzzer</code>（为了测试做了一些小的改动）。</p>
+<pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python3</span>
+
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> random
+<span class="hljs-keyword">from</span> pexpect <span class="hljs-keyword">import</span> run
+<span class="hljs-keyword">from</span> pipes <span class="hljs-keyword">import</span> quote
+
+<span class="hljs-comment"># read bytes from our valid JPEG and return them in a mutable bytearray </span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_bytes</span>(<span class="hljs-params">filename</span>):</span>
+
+    f = open(filename, <span class="hljs-string">&quot;rb&quot;</span>).read()
+
+    <span class="hljs-keyword">return</span> bytearray(f)
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
+
+    num_of_flips = int((len(data) - <span class="hljs-number">4</span>) * <span class="hljs-number">.01</span>)
+
+    indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
+
+    chosen_indexes = []
+
+    <span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += <span class="hljs-number">1</span>
+
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace(<span class="hljs-string">&quot;0b&quot;</span>,<span class="hljs-string">&quot;&quot;</span>))
+        current = <span class="hljs-string">&quot;0&quot;</span> * (<span class="hljs-number">8</span> - len(current)) + current
+        
+        indexes = range(<span class="hljs-number">0</span>,<span class="hljs-number">8</span>)
+
+        picked_index = random.choice(indexes)
+
+        new_number = []
+
+        <span class="hljs-comment"># our new_number list now has all the digits, example: [&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;]</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> current:
+            new_number.append(i)
+
+        <span class="hljs-comment"># if the number at our randomly selected index is a 1, make it a 0, and vice versa</span>
+        <span class="hljs-keyword">if</span> new_number[picked_index] == <span class="hljs-string">&quot;1&quot;</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;0&quot;</span>
+        <span class="hljs-keyword">else</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;1&quot;</span>
+
+        <span class="hljs-comment"># create our new binary string of our bit-flipped number</span>
+        current = <span class="hljs-string">&#x27;&#x27;</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> new_number:
+            current += i
+
+        <span class="hljs-comment"># convert that string to an integer</span>
+        current = int(current,<span class="hljs-number">2</span>)
+
+        <span class="hljs-comment"># change the number in our byte array to our new number we just constructed</span>
+        data[x] = current
+
+    <span class="hljs-keyword">return</span> data
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">magic</span>(<span class="hljs-params">data</span>):</span>
+
+    magic_vals = [
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">127</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">128</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">64</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">127</span>)
+    ]
+
+    picked_magic = random.choice(magic_vals)
+
+    length = len(data) - <span class="hljs-number">8</span>
+    index = range(<span class="hljs-number">0</span>, length)
+    picked_index = random.choice(index)
+
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )</span>
+    <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:		<span class="hljs-comment"># 0x7F</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">2</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x0000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+
+    <span class="hljs-comment"># here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">4</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00000000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">128</span>:		<span class="hljs-comment"># 0x80000000</span>
+            data[picked_index] = <span class="hljs-number">128</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">64</span>:			<span class="hljs-comment"># 0x40000000</span>
+            data[picked_index] = <span class="hljs-number">64</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:		<span class="hljs-comment"># 0x7FFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        
+    <span class="hljs-keyword">return</span> data
+
+<span class="hljs-comment"># create new jpg with mutated data</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_new</span>(<span class="hljs-params">data</span>):</span>
+
+    f = open(<span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-string">&quot;wb+&quot;</span>)
+    f.write(data)
+    f.close()
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">exif</span>(<span class="hljs-params">counter,data</span>):</span>
+
+    command = <span class="hljs-string">&quot;exif mutated.jpg -verbose&quot;</span>
+
+    out, returncode = run(<span class="hljs-string">&quot;sh -c &quot;</span> + quote(command), withexitstatus=<span class="hljs-number">1</span>)
+
+    <span class="hljs-keyword">if</span> <span class="hljs-string">b&quot;Segmentation&quot;</span> <span class="hljs-keyword">in</span> out:
+        f = open(<span class="hljs-string">&quot;crashes2/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
+        print(<span class="hljs-string">&quot;Segfault!&quot;</span>)
+
+    <span class="hljs-comment">#if counter % 100 == 0:</span>
+    <span class="hljs-comment">#	print(counter, end=&quot;\r&quot;)</span>
+
+<span class="hljs-keyword">if</span> len(sys.argv) &lt; <span class="hljs-number">2</span>:
+    print(<span class="hljs-string">&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;</span>)
+
+<span class="hljs-keyword">else</span>:
+    filename = sys.argv[<span class="hljs-number">1</span>]
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; <span class="hljs-number">1000</span>:
+        data = get_bytes(filename)
+        functions = [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]
+        picked_function = random.choice(functions)
+        picked_function = <span class="hljs-number">1</span>
+        <span class="hljs-keyword">if</span> picked_function == <span class="hljs-number">0</span>:
+            mutated = magic(data)
+            create_new(mutated)
+            exif(counter,mutated)
+        <span class="hljs-keyword">else</span>:
+            mutated = bit_flip(data)
+            create_new(mutated)
+            exif(counter,mutated)
+
+        counter += <span class="hljs-number">1</span></code></pre>
+
+<p>你或许注意到一些改变，我们改了：</p>
+<ul>
+<li>每100次迭代注释掉迭代计数器的打印语句</li>
+<li>添加用于提醒我们任何<code>Segfaults</code>的打印语句</li>
+<li>硬编码1k次迭代</li>
+<li>临时添加一行新代码<code>picked_function=1</code>，以便我们消除我们测试中的随机性，我们只一直用一种变异策略（<code>bit_flip()</code>）</li>
+</ul>
+<p>让我们用一些分析工具跑我们新版的<code>fuzzer</code>，我们可以实际分析在我们程序执行时我们花费的时间</p>
+<p>我们可以利用<code>cProfile</code>的<code>Python module</code>，看看在<code>1000</code>次<code>fuzzing</code>迭代中我们把时间花在哪里了，如果你还记得的，这个程序会把一个合规的<code>JPEG</code>文件作为路径参数，因此我们完整的命令行语法就像<code>python3 -m cProfile -s cumtime JPEGfuzzer.py ~/jpegs/Canon_40D.jpg</code>所示。</p>
+<p><strong>需要注意的是，添加这个<code>cProfile</code>工具会降低性能，我测试时是没带这个工具，在该文章中对于这个迭代大小，这似乎是不会造成显著差异</strong></p>
+<p>在这次运行之后，我们可以看到我们的程序的输出，并且我们可以看到在执行中我们最花时间的地方。</p>
+<pre><code class="hljs yaml"><span class="hljs-number">2476093</span> <span class="hljs-string">function</span> <span class="hljs-string">calls</span> <span class="hljs-string">(2474812</span> <span class="hljs-string">primitive</span> <span class="hljs-string">calls)</span> <span class="hljs-string">in</span> <span class="hljs-number">122.084</span> <span class="hljs-string">seconds</span>
+
+   <span class="hljs-attr">Ordered by:</span> <span class="hljs-string">cumulative</span> <span class="hljs-string">time</span>
+
+   <span class="hljs-string">ncalls</span>  <span class="hljs-string">tottime</span>  <span class="hljs-string">percall</span>  <span class="hljs-string">cumtime</span>  <span class="hljs-string">percall</span> <span class="hljs-string">filename:lineno(function)</span>
+     <span class="hljs-number">33</span><span class="hljs-string">/1</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">122.084</span>  <span class="hljs-number">122.084</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">builtins.exec</span>&#125;
+        <span class="hljs-number">1</span>    <span class="hljs-number">0.108</span>    <span class="hljs-number">0.108</span>  <span class="hljs-number">122.084</span>  <span class="hljs-number">122.084</span> <span class="hljs-string">blog.py:3(&lt;module&gt;)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.090</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">118.622</span>    <span class="hljs-number">0.119</span> <span class="hljs-string">blog.py:140(exif)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.080</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">118.452</span>    <span class="hljs-number">0.118</span> <span class="hljs-string">run.py:7(run)</span>
+     <span class="hljs-number">5432  </span><span class="hljs-number">103.761</span>    <span class="hljs-number">0.019</span>  <span class="hljs-number">103.761</span>    <span class="hljs-number">0.019</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">time.sleep</span>&#125;
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.028</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">100.923</span>    <span class="hljs-number">0.101</span> <span class="hljs-string">pty_spawn.py:316(close)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.025</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">100.816</span>    <span class="hljs-number">0.101</span> <span class="hljs-string">ptyprocess.py:387(close)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.061</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">9.949</span>    <span class="hljs-number">0.010</span> <span class="hljs-string">pty_spawn.py:36(__init__)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.074</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">9.764</span>    <span class="hljs-number">0.010</span> <span class="hljs-string">pty_spawn.py:239(_spawn)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.041</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">8.682</span>    <span class="hljs-number">0.009</span> <span class="hljs-string">pty_spawn.py:312(_spawnpty)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.266</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">8.641</span>    <span class="hljs-number">0.009</span> <span class="hljs-string">ptyprocess.py:178(spawn)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.011</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.491</span>    <span class="hljs-number">0.007</span> <span class="hljs-string">spawnbase.py:240(expect)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.036</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.479</span>    <span class="hljs-number">0.007</span> <span class="hljs-string">spawnbase.py:343(expect_list)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.128</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.409</span>    <span class="hljs-number">0.007</span> <span class="hljs-string">expect.py:91(expect_loop)</span>
+     <span class="hljs-number">6432    </span><span class="hljs-number">6.473</span>    <span class="hljs-number">0.001</span>    <span class="hljs-number">6.473</span>    <span class="hljs-number">0.001</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.read</span>&#125;
+     <span class="hljs-number">5432    </span><span class="hljs-number">0.089</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.818</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">pty_spawn.py:415(read_nonblocking)</span>
+     <span class="hljs-number">7348    </span><span class="hljs-number">0.029</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.162</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">utils.py:130(select_ignore_interrupts)</span>
+     <span class="hljs-number">7348    </span><span class="hljs-number">3.127</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.127</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">select.select</span>&#125;
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.790</span>    <span class="hljs-number">0.001</span>    <span class="hljs-number">1.777</span>    <span class="hljs-number">0.002</span> <span class="hljs-string">blog.py:15(bit_flip)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.015</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.311</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">blog.py:134(create_new)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">0.100</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.101</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">pty.py:79(fork)</span>
+     <span class="hljs-number">1000    </span><span class="hljs-number">1.000</span>    <span class="hljs-number">0.001</span>    <span class="hljs-number">1.000</span>    <span class="hljs-number">0.001</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.forkpty</span>&#125;
+<span class="hljs-string">-----SNIP-----</span></code></pre>
+
+<p>对于这种类型的分析，我们并不真正关心我们有多少<code>segfaults</code>，因为我们并没有真正修改变异方法或比较不同的方法。当然这里会有一些随机性，因为<code>crash</code>需要额外的处理，但现在就可以了。</p>
+<p>我只截了我们累计花费了超过<code>1.0s</code>的代码段，你可以看到迄今为止我们花费了最多的时间在<code>blog.py:140(exif)</code>，在<code>122s</code>中占了惊人的<code>118s</code>，我们<code>exif()</code>函数似乎成为我们性能的最大的问题。</p>
+<p>我们可以看到在这个函数下我们花费的大部分时间都是直接跟这个函数相关的，从<code>pexpect</code>用法中我们可以看到大量对<code>pty</code>模块的诉求（<code>appeal to the pty module</code>，笔者感觉就是对该模块的调用），让我们重写我们的函数用<code>subprocess</code>模块的<code>Popen</code>，看看是否我们可以提升性能吧。</p>
+<p>我们重定义<code>exif()</code>函数如下：</p>
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">exif</span>(<span class="hljs-params">counter,data</span>):</span>
+
+    p = Popen([<span class="hljs-string">&quot;exif&quot;</span>, <span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-string">&quot;-verbose&quot;</span>], stdout=PIPE, stderr=PIPE)
+    (out,err) = p.communicate()
+
+    <span class="hljs-keyword">if</span> p.returncode == <span class="hljs-number">-11</span>:
+        f = open(<span class="hljs-string">&quot;crashes2/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
+        print(<span class="hljs-string">&quot;Segfault!&quot;</span>)
+
+    <span class="hljs-comment">#if counter % 100 == 0:</span>
+    <span class="hljs-comment">#	print(counter, end=&quot;\r&quot;)</span></code></pre>
+
+<p>我们的性能报告如下：</p>
+<pre><code class="hljs profile"><span class="hljs-number">2065580</span> function calls (<span class="hljs-number">2065443</span> primitive calls) in <span class="hljs-number">2.756</span> seconds
+
+   Ordered by: cumulative time
+
+   <span class="hljs-keyword">ncalls</span>  <span class="hljs-keyword">tottime</span>  percall  <span class="hljs-keyword">cumtime</span>  percall <span class="hljs-keyword">filename</span>:lineno(function)
+     <span class="hljs-number">15</span>/<span class="hljs-number">1</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">2.756</span>    <span class="hljs-number">2.756</span> &#123;built-in method builtins.exec&#125;
+        1    0.038    0.038    2.756    2.756 subpro.py:<span class="hljs-number">3</span>(<span class="hljs-string">&lt;module&gt;</span>)
+     <span class="hljs-number">1000</span>    <span class="hljs-number">0.020</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.917</span>    <span class="hljs-number">0.002</span> subpro.py:<span class="hljs-number">139</span>(<span class="hljs-string">exif</span>)
+     <span class="hljs-number">1000</span>    <span class="hljs-number">0.026</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.121</span>    <span class="hljs-number">0.001</span> subprocess.py:<span class="hljs-number">681</span>(<span class="hljs-string">__init__</span>)
+     <span class="hljs-number">1000</span>    <span class="hljs-number">0.099</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.045</span>    <span class="hljs-number">0.001</span> subprocess.py:<span class="hljs-number">1412</span>(<span class="hljs-string">_execute_child</span>)
+ -----SNIP-----</code></pre>
+
+<p>区别是什么，这用重定义的<code>exif()</code>函数的<code>fuzzer</code>在相同数目的工作量下仅仅需要<code>2s</code>！！以前的<code>fuzzer: 122s</code>，新的<code>fuzzer: 2.7s</code></p>
+<h2 id="Improving-Further-in-Python"><a href="#Improving-Further-in-Python" class="headerlink" title="Improving Further in Python"></a>Improving Further in Python</h2><p>让我们尝试在<code>Python</code>中继续改进我们的<code>fuzzer</code>,首先，让我们得到一个好的基准，可以让我们对照着执行，我们将让我们的优化的<code>Python fuzzer</code>迭代50000次，我们将再次使用<code>cProfile</code>模块来获得一些关于我们花费时间的细粒度统计。</p>
+<pre><code class="hljs yaml"><span class="hljs-number">102981395</span> <span class="hljs-string">function</span> <span class="hljs-string">calls</span> <span class="hljs-string">(102981258</span> <span class="hljs-string">primitive</span> <span class="hljs-string">calls)</span> <span class="hljs-string">in</span> <span class="hljs-number">141.488</span> <span class="hljs-string">seconds</span>
+
+   <span class="hljs-attr">Ordered by:</span> <span class="hljs-string">cumulative</span> <span class="hljs-string">time</span>
+
+   <span class="hljs-string">ncalls</span>  <span class="hljs-string">tottime</span>  <span class="hljs-string">percall</span>  <span class="hljs-string">cumtime</span>  <span class="hljs-string">percall</span> <span class="hljs-string">filename:lineno(function)</span>
+     <span class="hljs-number">15</span><span class="hljs-string">/1</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">141.488</span>  <span class="hljs-number">141.488</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">builtins.exec</span>&#125;
+        <span class="hljs-number">1</span>    <span class="hljs-number">1.724</span>    <span class="hljs-number">1.724</span>  <span class="hljs-number">141.488</span>  <span class="hljs-number">141.488</span> <span class="hljs-string">subpro.py:3(&lt;module&gt;)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.992</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">102.588</span>    <span class="hljs-number">0.002</span> <span class="hljs-string">subpro.py:139(exif)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.248</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">61.562</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:681(__init__)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">5.034</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">57.826</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:1412(_execute_child)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.437</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">39.586</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:920(communicate)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">2.527</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">39.064</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:1662(_communicate)</span>
+   <span class="hljs-number">208254</span>   <span class="hljs-number">37.508</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">37.508</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.read</span>&#125;
+   <span class="hljs-number">158238</span>    <span class="hljs-number">0.577</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">28.809</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:402(select)</span>
+   <span class="hljs-number">158238</span>   <span class="hljs-number">28.131</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">28.131</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;poll&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;select.poll&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>   <span class="hljs-number">11.784</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">25.819</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subpro.py:14(bit_flip)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">3.666</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">10.431</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:256(choice)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">8.421</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">8.421</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">_posixsubprocess.fork_exec</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.162</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.358</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:133(create_new)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">4.096</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">6.130</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:224(_randbelow)</span>
+   <span class="hljs-number">203090</span>    <span class="hljs-number">5.016</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">5.016</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">io.open</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">4.211</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.211</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_io.BufferedRandom&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.643</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.194</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:617(get_exec_path)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.733</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.356</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:8(get_bytes)</span>
+ <span class="hljs-number">35866791</span>    <span class="hljs-number">2.635</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">2.635</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;append&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;list&#x27;</span> <span class="hljs-string">objects</span>&#125;
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.070</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.960</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1014(wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.252</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.902</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:351(register)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.444</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.890</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1621(_wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.675</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.583</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:234(register)</span>
+   <span class="hljs-number">350000</span>    <span class="hljs-number">0.432</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.501</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1471(&lt;genexpr&gt;)</span>
+ <span class="hljs-number">12074141</span>    <span class="hljs-number">1.434</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.434</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;getrandbits&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_random.Random&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.059</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.358</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1608(_try_wait)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.299</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.299</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.waitpid</span>&#125;
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.488</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.058</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:674(__getitem__)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">1.017</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.017</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_io.BufferedReader&#x27;</span> <span class="hljs-string">objects</span>&#125;
+<span class="hljs-string">-----SNIP-----</span></code></pre>
+
+<p>50000次迭代总共花费了我们141s，与我们正在处理的相比，这个性能是不错的了，我们之前做1000次迭代可用了122s！再次过滤只在我们花费了超过1.0s时间的地方，我们发现还是在<code>exif()</code>中花费了大部分时间，但是我们同样在<code>bit_flip()</code>中也发现了一些性能问题，因为我们在这累计花费了25s，让我们尝试优化一点这个函数吧。</p>
+<p>让我们继续并贴出旧<code>bit_flip()</code>函数</p>
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
+
+    num_of_flips = int((len(data) - <span class="hljs-number">4</span>) * <span class="hljs-number">.01</span>)
+
+    indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
+
+    chosen_indexes = []
+
+    <span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += <span class="hljs-number">1</span>
+
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace(<span class="hljs-string">&quot;0b&quot;</span>,<span class="hljs-string">&quot;&quot;</span>))
+        current = <span class="hljs-string">&quot;0&quot;</span> * (<span class="hljs-number">8</span> - len(current)) + current
+        
+        indexes = range(<span class="hljs-number">0</span>,<span class="hljs-number">8</span>)
+
+        picked_index = random.choice(indexes)
+
+        new_number = []
+
+        <span class="hljs-comment"># our new_number list now has all the digits, example: [&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;]</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> current:
+            new_number.append(i)
+
+        <span class="hljs-comment"># if the number at our randomly selected index is a 1, make it a 0, and vice versa</span>
+        <span class="hljs-keyword">if</span> new_number[picked_index] == <span class="hljs-string">&quot;1&quot;</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;0&quot;</span>
+        <span class="hljs-keyword">else</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;1&quot;</span>
+
+        <span class="hljs-comment"># create our new binary string of our bit-flipped number</span>
+        current = <span class="hljs-string">&#x27;&#x27;</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> new_number:
+            current += i
+
+        <span class="hljs-comment"># convert that string to an integer</span>
+        current = int(current,<span class="hljs-number">2</span>)
+
+        <span class="hljs-comment"># change the number in our byte array to our new number we just constructed</span>
+        data[x] = current
+
+    <span class="hljs-keyword">return</span> data</code></pre>
+
+<p>诚然，这个函数有点笨拙，我们可以用更好的逻辑来大大简化它，我发现在我有限的编程经历中经常会出现下面这种情况，你尽可以用你想要的所有花哨的深奥的编程知识，但是如果你编程背后的逻辑是不健全的，那么程序的性能就会受到影响。</p>
+<p>让我们减少我们所做的类型转换的数量，例如从<code>int</code>转成<code>str</code>或者反过来，让我们在编译器中用更少的代码，我们可以通过重新定义的<code>bit_flip()</code>完成我们想要的，如下所示：</p>
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
+
+    length = len(data) - <span class="hljs-number">4</span>
+
+    num_of_flips = int(length * <span class="hljs-number">.01</span>)
+
+    picked_indexes = []
+    
+    flip_array = [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">8</span>,<span class="hljs-number">16</span>,<span class="hljs-number">32</span>,<span class="hljs-number">64</span>,<span class="hljs-number">128</span>]
+
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        picked_indexes.append(random.choice(range(<span class="hljs-number">0</span>,length)))
+        counter += <span class="hljs-number">1</span>
+
+
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> picked_indexes:
+        mask = random.choice(flip_array)
+        data[x] = data[x] ^ mask
+
+    <span class="hljs-keyword">return</span> data</code></pre>
+
+<p>如果我们使用这个新的函数并监控结果，我们将获得以下的性能等级：</p>
+<pre><code class="hljs yaml"><span class="hljs-number">59376275</span> <span class="hljs-string">function</span> <span class="hljs-string">calls</span> <span class="hljs-string">(59376138</span> <span class="hljs-string">primitive</span> <span class="hljs-string">calls)</span> <span class="hljs-string">in</span> <span class="hljs-number">135.582</span> <span class="hljs-string">seconds</span>
+
+   <span class="hljs-attr">Ordered by:</span> <span class="hljs-string">cumulative</span> <span class="hljs-string">time</span>
+
+   <span class="hljs-string">ncalls</span>  <span class="hljs-string">tottime</span>  <span class="hljs-string">percall</span>  <span class="hljs-string">cumtime</span>  <span class="hljs-string">percall</span> <span class="hljs-string">filename:lineno(function)</span>
+     <span class="hljs-number">15</span><span class="hljs-string">/1</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">135.582</span>  <span class="hljs-number">135.582</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">builtins.exec</span>&#125;
+        <span class="hljs-number">1</span>    <span class="hljs-number">1.940</span>    <span class="hljs-number">1.940</span>  <span class="hljs-number">135.582</span>  <span class="hljs-number">135.582</span> <span class="hljs-string">subpro.py:3(&lt;module&gt;)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.978</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">107.857</span>    <span class="hljs-number">0.002</span> <span class="hljs-string">subpro.py:111(exif)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.450</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">64.236</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:681(__init__)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">5.566</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">60.141</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:1412(_execute_child)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.534</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">42.259</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:920(communicate)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">2.827</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">41.637</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:1662(_communicate)</span>
+   <span class="hljs-number">199549</span>   <span class="hljs-number">38.249</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">38.249</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.read</span>&#125;
+   <span class="hljs-number">149537</span>    <span class="hljs-number">0.555</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">30.376</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:402(select)</span>
+   <span class="hljs-number">149537</span>   <span class="hljs-number">29.722</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">29.722</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;poll&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;select.poll&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">3.993</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">14.471</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:14(bit_flip)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">3.741</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">10.316</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:256(choice)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">9.973</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">9.973</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">_posixsubprocess.fork_exec</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.163</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.034</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:105(create_new)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">3.987</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">5.952</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:224(_randbelow)</span>
+   <span class="hljs-number">202567</span>    <span class="hljs-number">4.966</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.966</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">io.open</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">4.042</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.042</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_io.BufferedRandom&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.539</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.828</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:617(get_exec_path)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.843</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.607</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:8(get_bytes)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.074</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">2.133</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1014(wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.463</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">2.059</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1621(_wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.274</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">2.046</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:351(register)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.782</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.702</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:234(register)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.055</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.507</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1608(_try_wait)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.452</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.452</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.waitpid</span>&#125;
+   <span class="hljs-number">350000</span>    <span class="hljs-number">0.424</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.436</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1471(&lt;genexpr&gt;)</span>
+ <span class="hljs-number">12066317</span>    <span class="hljs-number">1.339</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.339</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;getrandbits&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_random.Random&#x27;</span> <span class="hljs-string">objects</span>&#125;
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.466</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.048</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:674(__getitem__)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">1.014</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.014</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_io.BufferedReader&#x27;</span> <span class="hljs-string">objects</span>&#125;
+<span class="hljs-string">-----SNIP-----</span></code></pre>
+
+<p>从指标中可以看出，此时我们在<code>bit_flip()</code>中只花了14秒的累计时间！在我们最后一轮中，这个将近花费了25秒，在这一点上，这几乎是两倍的速度了，在我看来，我们在这里的优化工作做得很好。</p>
+<p>现在我们有了我们理想的<code>Python</code>基准测试（请记住，这里可能会有多进程或多线程的机会，但我们把这个想法留在下次），让我们继续把我们的<code>fuzzer</code>移植到一个新的语言<code>c++</code>，并测试其性能。</p>
+<h2 id="New-Fuzzer-in-C"><a href="#New-Fuzzer-in-C" class="headerlink" title="New Fuzzer in C++"></a>New Fuzzer in C++</h2><p>首先，让我们继续运行我们新优化的<code>python fuzzer</code>，并将其运行<code>100k</code>次<code>fuzzing</code>迭代，看看需要多长时间。</p>
+<p><code>118749892 function calls (118749755 primitive calls) in 256.881 seconds</code></p>
+<p>100k次迭代仅需256s！这性能摧毁了我们之前写的<code>fuzzer</code></p>
+<p>这将是我们用<code>c++</code>实现尝试要打败的基准测试，现在，就像我对<code>Python</code>开发的细微点的不熟悉程度，将其乘十，你就会发现，我对<code>c++</code>不熟悉的程度了，这段代码或许会贻笑大方，但是这是我目前能做的最好的，我们可以对应我们之前的<code>Python</code>代码解释每个函数。</p>
+<p>让我们逐个函数来看看，然后描述其实现</p>
+<pre><code class="hljs c++"><span class="hljs-comment">//</span>
+<span class="hljs-comment">// this function simply creates a stream by opening a file in binary mode;</span>
+<span class="hljs-comment">// finds the end of file, creates a string &#x27;data&#x27;, resizes data to be the same</span>
+<span class="hljs-comment">// size as the file moves the file pointer back to the beginning of the file;</span>
+<span class="hljs-comment">// reads the data from the into the data string;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> <span class="hljs-title">get_bytes</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> filename)</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-function"><span class="hljs-built_in">std</span>::ifstream <span class="hljs-title">fin</span><span class="hljs-params">(filename, <span class="hljs-built_in">std</span>::ios::binary)</span></span>;
+
+    <span class="hljs-keyword">if</span> (fin.is_open())
+    &#123;
+        fin.seekg(<span class="hljs-number">0</span>, <span class="hljs-built_in">std</span>::ios::<span class="hljs-built_in">end</span>);
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> data;
+        data.resize(fin.tellg());
+        fin.seekg(<span class="hljs-number">0</span>, <span class="hljs-built_in">std</span>::ios::beg);
+        fin.<span class="hljs-built_in">read</span>(&amp;data[<span class="hljs-number">0</span>], data.<span class="hljs-built_in">size</span>());
+
+        <span class="hljs-keyword">return</span> data;
+    &#125;
+
+    <span class="hljs-keyword">else</span>
+    &#123;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Failed to open &quot;</span> &lt;&lt; filename &lt;&lt; <span class="hljs-string">&quot;.\n&quot;</span>;
+        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+    &#125;
+
+&#125;</code></pre>
+
+<p>这个函数如我的注释所写，仅从我们的目标文件中检索一个字节的串，在我们的测试情况下，这个文件仍将为<code>Canon_40D.jpg</code></p>
+<pre><code class="hljs c++"><span class="hljs-comment">//</span>
+<span class="hljs-comment">// this will take 1% of the bytes from our valid jpeg and</span>
+<span class="hljs-comment">// flip a random bit in the byte and return the altered string</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> <span class="hljs-title">bit_flip</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> data)</span></span>
+<span class="hljs-function"></span>&#123;
+    
+    <span class="hljs-keyword">int</span> <span class="hljs-built_in">size</span> = (data.length() - <span class="hljs-number">4</span>);
+    <span class="hljs-keyword">int</span> num_of_flips = (<span class="hljs-keyword">int</span>)(<span class="hljs-built_in">size</span> * <span class="hljs-number">.01</span>);
+
+    <span class="hljs-comment">// get a vector full of 1% of random byte indexes</span>
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-keyword">int</span>&gt; picked_indexes;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; num_of_flips; i++)
+    &#123;
+        <span class="hljs-keyword">int</span> picked_index = rand() % <span class="hljs-built_in">size</span>;
+        picked_indexes.push_back(picked_index);
+    &#125;
+
+    <span class="hljs-comment">// iterate through the data string at those indexes and flip a bit</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; picked_indexes.<span class="hljs-built_in">size</span>(); ++i)
+    &#123;
+        <span class="hljs-keyword">int</span> index = picked_indexes[i];
+        <span class="hljs-keyword">char</span> current = data.at(index);
+        <span class="hljs-keyword">int</span> decimal = ((<span class="hljs-keyword">int</span>)current &amp; <span class="hljs-number">0xff</span>);
+        
+        <span class="hljs-keyword">int</span> bit_to_flip = rand() % <span class="hljs-number">8</span>;
+        
+        decimal ^= <span class="hljs-number">1</span> &lt;&lt; bit_to_flip;
+        decimal &amp;= <span class="hljs-number">0xff</span>;
+        
+        data[index] = (<span class="hljs-keyword">char</span>)decimal;
+    &#125;
+
+    <span class="hljs-keyword">return</span> data;
+
+&#125;</code></pre>
+
+<p>这个函数直接等同于我们<code>Python</code>脚本中的<code>bit_flip()</code>函数</p>
+<pre><code class="hljs c++"><span class="hljs-comment">//</span>
+<span class="hljs-comment">// takes mutated string and creates new jpeg with it;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">create_new</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> mutated)</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-function"><span class="hljs-built_in">std</span>::ofstream <span class="hljs-title">fout</span><span class="hljs-params">(<span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-built_in">std</span>::ios::binary)</span></span>;
+
+    <span class="hljs-keyword">if</span> (fout.is_open())
+    &#123;
+        fout.seekp(<span class="hljs-number">0</span>, <span class="hljs-built_in">std</span>::ios::beg);
+        fout.<span class="hljs-built_in">write</span>(&amp;mutated[<span class="hljs-number">0</span>], mutated.<span class="hljs-built_in">size</span>());
+    &#125;
+    <span class="hljs-keyword">else</span>
+    &#123;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Failed to create mutated.jpg&quot;</span> &lt;&lt; <span class="hljs-string">&quot;.\n&quot;</span>;
+        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+    &#125;
+
+&#125;</code></pre>
+
+<p>这个函数将简单地创建一个<code>mutated.jpg</code>文件，跟我们<code>Python</code>脚本中的<code>create_new()</code>函数类似</p>
+<pre><code class="hljs c++"><span class="hljs-comment">//</span>
+<span class="hljs-comment">// function to run a system command and store the output as a string;</span>
+<span class="hljs-comment">// https://www.jeremymorgan.com/tutorials/c-programming/how-to-capture-the-output-of-a-linux-command-in-c/</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> <span class="hljs-title">get_output</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> cmd)</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> output;
+    FILE * stream;
+    <span class="hljs-keyword">char</span> <span class="hljs-built_in">buffer</span>[<span class="hljs-number">256</span>];
+
+    stream = popen(cmd.c_str(), <span class="hljs-string">&quot;r&quot;</span>);
+    <span class="hljs-keyword">if</span> (stream)
+    &#123;
+        <span class="hljs-keyword">while</span> (!feof(stream))
+            <span class="hljs-keyword">if</span> (fgets(<span class="hljs-built_in">buffer</span>, <span class="hljs-number">256</span>, stream) != <span class="hljs-literal">NULL</span>) output.append(<span class="hljs-built_in">buffer</span>);
+                pclose(stream);
+    &#125;
+
+    <span class="hljs-keyword">return</span> output;
+
+&#125;
+
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// we actually run our exiv2 command via the get_output() func;</span>
+<span class="hljs-comment">// retrieve the output in the form of a string and then we can parse the string;</span>
+<span class="hljs-comment">// we&#x27;ll save all the outputs that result in a segfault or floating point except;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">exif</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> mutated, <span class="hljs-keyword">int</span> counter)</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> command = <span class="hljs-string">&quot;exif mutated.jpg -verbose 2&gt;&amp;1&quot;</span>;
+
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> output = get_output(command);
+
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> segfault = <span class="hljs-string">&quot;Segmentation&quot;</span>;
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> floating_point = <span class="hljs-string">&quot;Floating&quot;</span>;
+
+    <span class="hljs-built_in">std</span>::<span class="hljs-keyword">size_t</span> pos1 = output.<span class="hljs-built_in">find</span>(segfault);
+    <span class="hljs-built_in">std</span>::<span class="hljs-keyword">size_t</span> pos2 = output.<span class="hljs-built_in">find</span>(floating_point);
+
+    <span class="hljs-keyword">if</span> (pos1 != <span class="hljs-number">-1</span>)
+    &#123;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Segfault!\n&quot;</span>;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">ostringstream</span> oss;
+        oss &lt;&lt; <span class="hljs-string">&quot;/root/cppcrashes/crash.&quot;</span> &lt;&lt; counter &lt;&lt; <span class="hljs-string">&quot;.jpg&quot;</span>;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> filename = oss.str();
+        <span class="hljs-function"><span class="hljs-built_in">std</span>::ofstream <span class="hljs-title">fout</span><span class="hljs-params">(filename, <span class="hljs-built_in">std</span>::ios::binary)</span></span>;
+
+        <span class="hljs-keyword">if</span> (fout.is_open())
+            &#123;
+                fout.seekp(<span class="hljs-number">0</span>, <span class="hljs-built_in">std</span>::ios::beg);
+                fout.<span class="hljs-built_in">write</span>(&amp;mutated[<span class="hljs-number">0</span>], mutated.<span class="hljs-built_in">size</span>());
+            &#125;
+        <span class="hljs-keyword">else</span>
+        &#123;
+            <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Failed to create &quot;</span> &lt;&lt; filename &lt;&lt; <span class="hljs-string">&quot;.jpg&quot;</span> &lt;&lt; <span class="hljs-string">&quot;.\n&quot;</span>;
+            <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+        &#125;
+    &#125;
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (pos2 != <span class="hljs-number">-1</span>)
+    &#123;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Floating Point!\n&quot;</span>;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">ostringstream</span> oss;
+        oss &lt;&lt; <span class="hljs-string">&quot;/root/cppcrashes/crash.&quot;</span> &lt;&lt; counter &lt;&lt; <span class="hljs-string">&quot;.jpg&quot;</span>;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> filename = oss.str();
+        <span class="hljs-function"><span class="hljs-built_in">std</span>::ofstream <span class="hljs-title">fout</span><span class="hljs-params">(filename, <span class="hljs-built_in">std</span>::ios::binary)</span></span>;
+
+        <span class="hljs-keyword">if</span> (fout.is_open())
+            &#123;
+                fout.seekp(<span class="hljs-number">0</span>, <span class="hljs-built_in">std</span>::ios::beg);
+                fout.<span class="hljs-built_in">write</span>(&amp;mutated[<span class="hljs-number">0</span>], mutated.<span class="hljs-built_in">size</span>());
+            &#125;
+        <span class="hljs-keyword">else</span>
+        &#123;
+            <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Failed to create &quot;</span> &lt;&lt; filename &lt;&lt; <span class="hljs-string">&quot;.jpg&quot;</span> &lt;&lt; <span class="hljs-string">&quot;.\n&quot;</span>;
+            <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+<p>这两个函数一起工作，<code>get_output</code>函数接收一个<code>C++</code>字符串作为参数，将在操作系统上运行该命令并捕获输出，然后，该函数将输出作为一个字符串返回给调用函数<code>exif()</code></p>
+<p><code>exif()</code>将拿到输出并寻找<code>Segmentation fault</code>或<code>Floating point exception</code>错误，如果发现这些输出，就把这些字节写入一个文件并保存为<code>crash.&lt;counter&gt;.jpg</code>文件，与我们的<code>Python fuzzer</code>非常相似。</p>
+<pre><code class="hljs c++"><span class="hljs-comment">//</span>
+<span class="hljs-comment">// simply generates a vector of strings that are our &#x27;magic&#x27; values;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt; <span class="hljs-title">vector_gen</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt; magic;
+
+    <span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>::string_literals;
+
+    magic.push_back(<span class="hljs-string">&quot;\xff&quot;</span>);
+    magic.push_back(<span class="hljs-string">&quot;\x7f&quot;</span>);
+    magic.push_back(<span class="hljs-string">&quot;\x00&quot;</span>s);
+    magic.push_back(<span class="hljs-string">&quot;\xff\xff&quot;</span>);
+    magic.push_back(<span class="hljs-string">&quot;\x7f\xff&quot;</span>);
+    magic.push_back(<span class="hljs-string">&quot;\x00\x00&quot;</span>s);
+    magic.push_back(<span class="hljs-string">&quot;\xff\xff\xff\xff&quot;</span>);
+    magic.push_back(<span class="hljs-string">&quot;\x80\x00\x00\x00&quot;</span>s);
+    magic.push_back(<span class="hljs-string">&quot;\x40\x00\x00\x00&quot;</span>s);
+    magic.push_back(<span class="hljs-string">&quot;\x7f\xff\xff\xff&quot;</span>);
+
+    <span class="hljs-keyword">return</span> magic;
+&#125;
+
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// randomly picks a magic value from the vector and overwrites that many bytes in the image;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> <span class="hljs-title">magic</span><span class="hljs-params">(<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> data, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt; magic)</span></span>
+<span class="hljs-function"></span>&#123;
+    
+    <span class="hljs-keyword">int</span> vector_size = magic.<span class="hljs-built_in">size</span>();
+    <span class="hljs-keyword">int</span> picked_magic_index = rand() % vector_size;
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> picked_magic = magic[picked_magic_index];
+    <span class="hljs-keyword">int</span> <span class="hljs-built_in">size</span> = (data.length() - <span class="hljs-number">4</span>);
+    <span class="hljs-keyword">int</span> picked_data_index = rand() % <span class="hljs-built_in">size</span>;
+    data.replace(picked_data_index, magic[picked_magic_index].length(), magic[picked_magic_index]);
+
+    <span class="hljs-keyword">return</span> data;
+
+&#125;
+
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// returns 0 or 1;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">func_pick</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"></span>&#123;
+    <span class="hljs-keyword">int</span> result = rand() % <span class="hljs-number">2</span>;
+
+    <span class="hljs-keyword">return</span> result;
+&#125;</code></pre>
+
+<p>这些函数与我们的<code>Python</code>实现也很相似，<code>vector_gen()</code>几乎只是创建了我们的<code>magic value</code>的<code>vector</code>，然后像<code>magic()</code>这样的后续函数使用该<code>vector</code>随机选择一个<code>index</code>，并用相应的变异数据覆盖有效<code>jpeg</code>中的数据。</p>
+<p><code>func_pick()</code>非常简单，只是返回一个0或一个1，这样我们的<code>fuzzer</code>就可以随机地选择<code>bit_flip()</code>或<code>magic()</code>来变异我们的有效的<code>jpeg</code>文件，为了保持一致性，让我们的<code>fuzzer</code>暂时只选择<code>bit_flip()</code>，在我们的程序中添加一行临时的<code>function = 1</code>，这样我们就能与我们的<code>Python</code>测试相匹配了</p>
+<p>下面就是我们的<code>main()</code>函数，它执行了我们到目前为止的所有代码：</p>
+<pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span>** argv)</span></span>
+<span class="hljs-function"></span>&#123;
+
+    <span class="hljs-keyword">if</span> (argc &lt; <span class="hljs-number">3</span>)
+    &#123;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Usage: ./cppfuzz &lt;valid jpeg&gt; &lt;number_of_fuzzing_iterations&gt;\n&quot;</span>;
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Usage: ./cppfuzz Canon_40D.jpg 10000\n&quot;</span>;
+        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+    &#125;
+
+    <span class="hljs-comment">// start timer</span>
+    <span class="hljs-keyword">auto</span> start = <span class="hljs-built_in">std</span>::chrono::high_resolution_clock::now();
+
+    <span class="hljs-comment">// initialize our random seed</span>
+    srand((<span class="hljs-keyword">unsigned</span>)time(<span class="hljs-literal">NULL</span>));
+
+    <span class="hljs-comment">// generate our vector of magic numbers</span>
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">vector</span>&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt; magic_vector = vector_gen();
+
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> filename = argv[<span class="hljs-number">1</span>];
+    <span class="hljs-keyword">int</span> iterations = atoi(argv[<span class="hljs-number">2</span>]);
+
+    <span class="hljs-keyword">int</span> counter = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">while</span> (counter &lt; iterations)
+    &#123;
+
+        <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> data = get_bytes(filename);
+
+        <span class="hljs-keyword">int</span> function = func_pick();
+        function = <span class="hljs-number">1</span>;
+        <span class="hljs-keyword">if</span> (function == <span class="hljs-number">0</span>)
+        &#123;
+            <span class="hljs-comment">// utilize the magic mutation method; create new jpg; send to exiv2</span>
+            <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> mutated = magic(data, magic_vector);
+            create_new(mutated);
+            exif(mutated,counter);
+            counter++;
+        &#125;
+        <span class="hljs-keyword">else</span>
+        &#123;
+            <span class="hljs-comment">// utilize the bit flip mutation; create new jpg; send to exiv2</span>
+            <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> mutated = bit_flip(data);
+            create_new(mutated);
+            exif(mutated,counter);
+            counter++;
+        &#125;
+    &#125;
+
+    <span class="hljs-comment">// stop timer and print execution time</span>
+    <span class="hljs-keyword">auto</span> <span class="hljs-built_in">stop</span> = <span class="hljs-built_in">std</span>::chrono::high_resolution_clock::now();
+    <span class="hljs-keyword">auto</span> duration = <span class="hljs-built_in">std</span>::chrono::duration_cast&lt;<span class="hljs-built_in">std</span>::chrono::milliseconds&gt;(<span class="hljs-built_in">stop</span> - start);
+    <span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">&quot;Execution Time: &quot;</span> &lt;&lt; duration.count() &lt;&lt; <span class="hljs-string">&quot;ms\n&quot;</span>;
+
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+&#125;</code></pre>
+
+<p>我们从命令行参数中得到一个有效的<code>JPEG</code>进行变异和<code>fuzzing</code>迭代的次数，我们用<code>std::chrono</code>命名空间建立了一些计时机制，以计时我们的程序需要运行多长时间。</p>
+<p>我们在这里只选择<code>bit_flip()</code>类型的变异是一种作弊，但是这要是我们在<code>Python</code>所做地一样，所以我们想要的一种公平地比较。</p>
+<p>让我们继续然后运行它进行<code>100k</code>次迭代，并且与<code>Python fuzzer</code>基准测试<code>256s</code>进行比较。</p>
+<p>当我们运行<code>C++ fuzzer</code>时，我们得到了一个用毫秒为单位的打印时间：<code>Execution Time: 172638ms</code> 相当于 <code>172s</code></p>
+<p>因此，我们用我们新的<code>C++ fuzzer</code>轻松地摧毁了我们的<code>Python fuzzer</code>！让我们继续在这里做一些算数运算<code>172/256 = 67%</code>，因此我们用<code>C++</code>实现的速度大约是快了<code>33%</code></p>
+<p>让我们带着我们优化过的<code>Python</code>和<code>C++ fuzzer</code>，去尝试一个新的目标吧!</p>
+<h2 id="Selecting-a-New-Victim"><a href="#Selecting-a-New-Victim" class="headerlink" title="Selecting a New Victim"></a>Selecting a New Victim</h2><p>看一下<code>Kali Linux</code>上预装的东西，因为这是我们的操作环境，让我们看一下<code>exiv2</code>，它是在<code>/usr/bin/exiv2</code>中被找到。</p>
+<pre><code class="hljs sql">root@kali:~<span class="hljs-comment"># exiv2 -h</span>
+Usage: exiv2 [ options ] [ action ] file ...
+
+Manipulate the Exif metadata of images.
+
+Actions:
+  ad | adjust   Adjust Exif timestamps by the given time. This action
+                requires at least one of the -a, -Y, -O or -D options.
+  pr | print    Print image metadata.
+  rm | <span class="hljs-keyword">delete</span>   <span class="hljs-keyword">Delete</span> image metadata <span class="hljs-keyword">from</span> the files.
+  <span class="hljs-keyword">in</span> | <span class="hljs-keyword">insert</span>   <span class="hljs-keyword">Insert</span> metadata <span class="hljs-keyword">from</span> <span class="hljs-keyword">corresponding</span> *.exv files.
+                <span class="hljs-keyword">Use</span> <span class="hljs-keyword">option</span> -S <span class="hljs-keyword">to</span> <span class="hljs-keyword">change</span> the suffix <span class="hljs-keyword">of</span> the <span class="hljs-keyword">input</span> files.
+  ex | <span class="hljs-keyword">extract</span>  <span class="hljs-keyword">Extract</span> metadata <span class="hljs-keyword">to</span> *.exv, *.xmp <span class="hljs-keyword">and</span> thumbnail image files.
+  mv | <span class="hljs-keyword">rename</span>   <span class="hljs-keyword">Rename</span> files <span class="hljs-keyword">and</span>/<span class="hljs-keyword">or</span> <span class="hljs-keyword">set</span> <span class="hljs-keyword">file</span> timestamps according <span class="hljs-keyword">to</span> the
+                Exif <span class="hljs-keyword">create</span> timestamp. The filename <span class="hljs-keyword">format</span> can be <span class="hljs-keyword">set</span> <span class="hljs-keyword">with</span>
+                -r <span class="hljs-keyword">format</span>, <span class="hljs-built_in">timestamp</span> options <span class="hljs-keyword">are</span> controlled <span class="hljs-keyword">with</span> -t <span class="hljs-keyword">and</span> -T.
+  mo | <span class="hljs-keyword">modify</span>   <span class="hljs-keyword">Apply</span> commands <span class="hljs-keyword">to</span> <span class="hljs-keyword">modify</span> (<span class="hljs-keyword">add</span>, <span class="hljs-keyword">set</span>, <span class="hljs-keyword">delete</span>) the Exif <span class="hljs-keyword">and</span>
+                IPTC metadata <span class="hljs-keyword">of</span> image files <span class="hljs-keyword">or</span> <span class="hljs-keyword">set</span> the JPEG comment.
+                Requires <span class="hljs-keyword">option</span> -c, -m <span class="hljs-keyword">or</span> -M.
+  fi | fixiso   Copy ISO setting <span class="hljs-keyword">from</span> the Nikon Makernote <span class="hljs-keyword">to</span> the regular
+                Exif tag.
+  fc | fixcom   <span class="hljs-keyword">Convert</span> the <span class="hljs-keyword">UNICODE</span> Exif <span class="hljs-keyword">user</span> <span class="hljs-keyword">comment</span> <span class="hljs-keyword">to</span> UCS<span class="hljs-number">-2.</span> Its <span class="hljs-keyword">current</span>
+                <span class="hljs-built_in">character</span> <span class="hljs-keyword">encoding</span> can be specified <span class="hljs-keyword">with</span> the -n option.
+
+Options:
+   -h      Display this <span class="hljs-keyword">help</span> <span class="hljs-keyword">and</span> exit.
+   -V      <span class="hljs-keyword">Show</span> the program <span class="hljs-keyword">version</span> <span class="hljs-keyword">and</span> exit.
+   -v      Be verbose during the program run.
+   -q      Silence <span class="hljs-keyword">warnings</span> <span class="hljs-keyword">and</span> <span class="hljs-keyword">error</span> messages during the program run (quiet).
+   -Q lvl  <span class="hljs-keyword">Set</span> <span class="hljs-keyword">log</span>-<span class="hljs-keyword">level</span> <span class="hljs-keyword">to</span> d(ebug), i(nfo), w(arning), e(rror) <span class="hljs-keyword">or</span> m(ute).
+   -b      <span class="hljs-keyword">Show</span> <span class="hljs-keyword">large</span> <span class="hljs-built_in">binary</span> values.
+   -u      <span class="hljs-keyword">Show</span> <span class="hljs-literal">unknown</span> tags.
+   -g <span class="hljs-keyword">key</span>  <span class="hljs-keyword">Only</span> <span class="hljs-keyword">output</span> info <span class="hljs-keyword">for</span> this <span class="hljs-keyword">key</span> (grep).
+   -K <span class="hljs-keyword">key</span>  <span class="hljs-keyword">Only</span> <span class="hljs-keyword">output</span> info <span class="hljs-keyword">for</span> this <span class="hljs-keyword">key</span> (exact <span class="hljs-keyword">match</span>).
+   -n enc  <span class="hljs-keyword">Charset</span> <span class="hljs-keyword">to</span> <span class="hljs-keyword">use</span> <span class="hljs-keyword">to</span> <span class="hljs-keyword">decode</span> <span class="hljs-keyword">UNICODE</span> Exif <span class="hljs-keyword">user</span> comments.
+   -k      <span class="hljs-keyword">Preserve</span> <span class="hljs-keyword">file</span> timestamps (<span class="hljs-keyword">keep</span>).
+   -t      Also <span class="hljs-keyword">set</span> the <span class="hljs-keyword">file</span> <span class="hljs-built_in">timestamp</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;rename&#x27;</span> <span class="hljs-keyword">action</span> (overrides -k).
+   -T      <span class="hljs-keyword">Only</span> <span class="hljs-keyword">set</span> the <span class="hljs-keyword">file</span> <span class="hljs-built_in">timestamp</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;rename&#x27;</span> <span class="hljs-keyword">action</span>, <span class="hljs-keyword">do</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">rename</span>
+           the <span class="hljs-keyword">file</span> (overrides -k).
+   -f      <span class="hljs-keyword">Do</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">prompt</span> <span class="hljs-keyword">before</span> overwriting existing files (<span class="hljs-keyword">force</span>).
+   -F      <span class="hljs-keyword">Do</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">prompt</span> <span class="hljs-keyword">before</span> renaming files (<span class="hljs-keyword">Force</span>).
+   -a <span class="hljs-built_in">time</span> <span class="hljs-built_in">Time</span> adjustment <span class="hljs-keyword">in</span> the <span class="hljs-keyword">format</span> [-]HH[:MM[:SS]]. This <span class="hljs-keyword">option</span>
+           <span class="hljs-keyword">is</span> <span class="hljs-keyword">only</span> used <span class="hljs-keyword">with</span> the <span class="hljs-string">&#x27;adjust&#x27;</span> action.
+   -Y yrs  <span class="hljs-keyword">Year</span> adjustment <span class="hljs-keyword">with</span> the <span class="hljs-string">&#x27;adjust&#x27;</span> action.
+   -O mon  <span class="hljs-keyword">Month</span> adjustment <span class="hljs-keyword">with</span> the <span class="hljs-string">&#x27;adjust&#x27;</span> action.
+   -D <span class="hljs-keyword">day</span>  <span class="hljs-keyword">Day</span> adjustment <span class="hljs-keyword">with</span> the <span class="hljs-string">&#x27;adjust&#x27;</span> action.
+   -p <span class="hljs-keyword">mode</span> Print <span class="hljs-keyword">mode</span> <span class="hljs-keyword">for</span> the <span class="hljs-string">&#x27;print&#x27;</span> action. Possible modes <span class="hljs-keyword">are</span>:
+             s : print a summary <span class="hljs-keyword">of</span> the Exif metadata (the <span class="hljs-keyword">default</span>)
+             a : print Exif, IPTC <span class="hljs-keyword">and</span> XMP metadata (shortcut <span class="hljs-keyword">for</span> -Pkyct)
+             t : interpreted (translated) Exif <span class="hljs-keyword">data</span> (-PEkyct)
+             v : plain Exif <span class="hljs-keyword">data</span> <span class="hljs-keyword">values</span> (-PExgnycv)
+             h : hexdump <span class="hljs-keyword">of</span> the Exif <span class="hljs-keyword">data</span> (-PExgnycsh)
+             i : IPTC <span class="hljs-keyword">data</span> <span class="hljs-keyword">values</span> (-PIkyct)
+             x : XMP properties (-PXkyct)
+             c : JPEG <span class="hljs-keyword">comment</span>
+             p : <span class="hljs-keyword">list</span> available previews
+             S : print structure <span class="hljs-keyword">of</span> image
+             X : <span class="hljs-keyword">extract</span> XMP <span class="hljs-keyword">from</span> image
+   -P flgs Print flags <span class="hljs-keyword">for</span> fine control <span class="hljs-keyword">of</span> tag lists (<span class="hljs-string">&#x27;print&#x27;</span> <span class="hljs-keyword">action</span>):
+             E : <span class="hljs-keyword">include</span> Exif tags <span class="hljs-keyword">in</span> the <span class="hljs-keyword">list</span>
+             I : IPTC datasets
+             X : XMP properties
+             x : print a <span class="hljs-keyword">column</span> <span class="hljs-keyword">with</span> the tag <span class="hljs-built_in">number</span>
+             g : <span class="hljs-keyword">group</span> <span class="hljs-keyword">name</span>
+             k : <span class="hljs-keyword">key</span>
+             l : tag label
+             n : tag <span class="hljs-keyword">name</span>
+             y : <span class="hljs-keyword">type</span>
+             c : <span class="hljs-built_in">number</span> <span class="hljs-keyword">of</span> components (<span class="hljs-keyword">count</span>)
+             s : <span class="hljs-keyword">size</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">bytes</span>
+             v : plain <span class="hljs-keyword">data</span> <span class="hljs-keyword">value</span>
+             t : interpreted (translated) <span class="hljs-keyword">data</span>
+             h : hexdump <span class="hljs-keyword">of</span> the <span class="hljs-keyword">data</span>
+   -d tgt  <span class="hljs-keyword">Delete</span> target(s) <span class="hljs-keyword">for</span> the <span class="hljs-string">&#x27;delete&#x27;</span> action. Possible targets <span class="hljs-keyword">are</span>:
+             a : <span class="hljs-keyword">all</span> supported metadata (the <span class="hljs-keyword">default</span>)
+             e : Exif <span class="hljs-keyword">section</span>
+             t : Exif thumbnail <span class="hljs-keyword">only</span>
+             i : IPTC <span class="hljs-keyword">data</span>
+             x : XMP packet
+             c : JPEG <span class="hljs-keyword">comment</span>
+   -i tgt  <span class="hljs-keyword">Insert</span> target(s) <span class="hljs-keyword">for</span> the <span class="hljs-string">&#x27;insert&#x27;</span> action. Possible targets <span class="hljs-keyword">are</span>
+           the same <span class="hljs-keyword">as</span> those <span class="hljs-keyword">for</span> the -d <span class="hljs-keyword">option</span>, plus a modifier:
+             X : <span class="hljs-keyword">Insert</span> metadata <span class="hljs-keyword">from</span> an XMP sidecar <span class="hljs-keyword">file</span> &lt;<span class="hljs-keyword">file</span>&gt;.xmp
+           <span class="hljs-keyword">Only</span> JPEG thumbnails can be inserted, they need <span class="hljs-keyword">to</span> be named
+           &lt;<span class="hljs-keyword">file</span>&gt;-thumb.jpg
+   -e tgt  <span class="hljs-keyword">Extract</span> target(s) <span class="hljs-keyword">for</span> the <span class="hljs-string">&#x27;extract&#x27;</span> action. Possible targets
+           <span class="hljs-keyword">are</span> the same <span class="hljs-keyword">as</span> those <span class="hljs-keyword">for</span> the -d <span class="hljs-keyword">option</span>, plus a target <span class="hljs-keyword">to</span> <span class="hljs-keyword">extract</span>
+           preview images <span class="hljs-keyword">and</span> a modifier <span class="hljs-keyword">to</span> generate an XMP sidecar <span class="hljs-keyword">file</span>:
+             p[&lt;n&gt;[,&lt;m&gt; ...]] : <span class="hljs-keyword">Extract</span> preview images.
+             X : <span class="hljs-keyword">Extract</span> metadata <span class="hljs-keyword">to</span> an XMP sidecar <span class="hljs-keyword">file</span> &lt;<span class="hljs-keyword">file</span>&gt;.xmp
+   -r fmt  Filename <span class="hljs-keyword">format</span> <span class="hljs-keyword">for</span> the <span class="hljs-string">&#x27;rename&#x27;</span> action. The <span class="hljs-keyword">format</span> <span class="hljs-keyword">string</span>
+           <span class="hljs-keyword">follows</span> strftime(<span class="hljs-number">3</span>). The <span class="hljs-keyword">following</span> keywords <span class="hljs-keyword">are</span> supported:
+             :basename:   - original filename <span class="hljs-keyword">without</span> extension
+             :dirname:    - <span class="hljs-keyword">name</span> <span class="hljs-keyword">of</span> the <span class="hljs-keyword">directory</span> holding the original <span class="hljs-keyword">file</span>
+             :parentname: - <span class="hljs-keyword">name</span> <span class="hljs-keyword">of</span> <span class="hljs-keyword">parent</span> <span class="hljs-keyword">directory</span>
+           <span class="hljs-keyword">Default</span> filename <span class="hljs-keyword">format</span> <span class="hljs-keyword">is</span> %Y%m%d_%H%M%S.
+   -c txt  JPEG <span class="hljs-keyword">comment</span> <span class="hljs-keyword">string</span> <span class="hljs-keyword">to</span> <span class="hljs-keyword">set</span> <span class="hljs-keyword">in</span> the image.
+   -m <span class="hljs-keyword">file</span> Command <span class="hljs-keyword">file</span> <span class="hljs-keyword">for</span> the <span class="hljs-keyword">modify</span> action. The <span class="hljs-keyword">format</span> <span class="hljs-keyword">for</span> commands <span class="hljs-keyword">is</span>
+           <span class="hljs-keyword">set</span>|<span class="hljs-keyword">add</span>|del &lt;<span class="hljs-keyword">key</span>&gt; [[&lt;<span class="hljs-keyword">type</span>&gt;] &lt;<span class="hljs-keyword">value</span>&gt;].
+   -M cmd  Command line <span class="hljs-keyword">for</span> the <span class="hljs-keyword">modify</span> action. The <span class="hljs-keyword">format</span> <span class="hljs-keyword">for</span> the
+           commands <span class="hljs-keyword">is</span> the same <span class="hljs-keyword">as</span> that <span class="hljs-keyword">of</span> the <span class="hljs-keyword">lines</span> <span class="hljs-keyword">of</span> a command file.
+   -l dir  Location (<span class="hljs-keyword">directory</span>) <span class="hljs-keyword">for</span> files <span class="hljs-keyword">to</span> be inserted <span class="hljs-keyword">from</span> <span class="hljs-keyword">or</span> extracted to.
+   -S .suf <span class="hljs-keyword">Use</span> suffix .suf <span class="hljs-keyword">for</span> <span class="hljs-keyword">source</span> files <span class="hljs-keyword">for</span> <span class="hljs-keyword">insert</span> command.</code></pre>
+
+<p>看一下帮助指南，让我们继续随机地尝试一下用于<code>Print image metadata</code>的<code>pr</code>和用于<code>Be verbose during the program run</code>的<code>-v</code>指令，你可以从这个帮助指南中看到这里有大量的攻击面供我们探索，但现在让我们把事情简单化。</p>
+<p>现在在我们<code>fuzzer</code>中的命令行指令字符将是这样的：<code>exiv2 pr -v mutated.jpg</code></p>
+<p>我们继续更新我们的<code>fuzzer</code>，看看我们是否能在一个更难的目标上找到<code>bug</code>，值得一提的是，这个目标是受支持的，而不像我们上一个目标，去找一个微不足道的二进制的<code>bugs</code>（<code>Github</code>上不再被支持的7年已久的项目）</p>
+<p>这个目标已经被更高级的<code>fuzzer</code>进行模糊测试过了，你可以简单地通过谷歌<code>ASan exiv2</code>搜素之类地东西，并获得大量的<code>fuzzer</code>在二进制文件上创建的<code>segfaults</code>，并转发<code>ASan</code>输出到<code>github</code>仓库作为一个<code>bug</code>，这是我们上一个目标的重要一步。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Exiv2/exiv2">exiv2 on Github</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.exiv2.org/">exiv2 Website</a></p>
+<h2 id="Fuzzing-Our-New-Target"><a href="#Fuzzing-Our-New-Target" class="headerlink" title="Fuzzing Our New Target"></a>Fuzzing Our New Target</h2><p>让我们从我们新的和改进的<code>Python fuzzer</code>开始，监测它在<code>50k</code>次迭代中的性能，让我们添加一些代码，除了我们的<code>Segmentation fault detection</code>外，还监测<code>Floating point exceptions</code>（称之为赌怪！），我们的新<code>exif()</code>函数将看起来像这样：</p>
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">exif</span>(<span class="hljs-params">counter,data</span>):</span>
+
+    p = Popen([<span class="hljs-string">&quot;exiv2&quot;</span>, <span class="hljs-string">&quot;pr&quot;</span>, <span class="hljs-string">&quot;-v&quot;</span>, <span class="hljs-string">&quot;mutated.jpg&quot;</span>], stdout=PIPE, stderr=PIPE)
+    (out,err) = p.communicate()
+
+    <span class="hljs-keyword">if</span> p.returncode == <span class="hljs-number">-11</span>:
+        f = open(<span class="hljs-string">&quot;crashes2/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
+        print(<span class="hljs-string">&quot;Segfault!&quot;</span>)
+
+    <span class="hljs-keyword">elif</span> p.returncode == <span class="hljs-number">-8</span>:
+        f = open(<span class="hljs-string">&quot;crashes2/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
+        print(<span class="hljs-string">&quot;Floating Point!&quot;</span>)</code></pre>
+
+<p>我们来看看<code>python3 -m cProfile -s cumtime subpro.py ~/jpegs/Canon_40D.jpg</code>的输出：</p>
+<pre><code class="hljs yaml"><span class="hljs-number">75780446</span> <span class="hljs-string">function</span> <span class="hljs-string">calls</span> <span class="hljs-string">(75780309</span> <span class="hljs-string">primitive</span> <span class="hljs-string">calls)</span> <span class="hljs-string">in</span> <span class="hljs-number">213.595</span> <span class="hljs-string">seconds</span>
+
+   <span class="hljs-attr">Ordered by:</span> <span class="hljs-string">cumulative</span> <span class="hljs-string">time</span>
+
+   <span class="hljs-string">ncalls</span>  <span class="hljs-string">tottime</span>  <span class="hljs-string">percall</span>  <span class="hljs-string">cumtime</span>  <span class="hljs-string">percall</span> <span class="hljs-string">filename:lineno(function)</span>
+     <span class="hljs-number">15</span><span class="hljs-string">/1</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">213.595</span>  <span class="hljs-number">213.595</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">builtins.exec</span>&#125;
+        <span class="hljs-number">1</span>    <span class="hljs-number">1.481</span>    <span class="hljs-number">1.481</span>  <span class="hljs-number">213.595</span>  <span class="hljs-number">213.595</span> <span class="hljs-string">subpro.py:3(&lt;module&gt;)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.818</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">187.205</span>    <span class="hljs-number">0.004</span> <span class="hljs-string">subpro.py:111(exif)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.543</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">143.499</span>    <span class="hljs-number">0.003</span> <span class="hljs-string">subprocess.py:920(communicate)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">6.773</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">142.873</span>    <span class="hljs-number">0.003</span> <span class="hljs-string">subprocess.py:1662(_communicate)</span>
+  <span class="hljs-number">1641352</span>    <span class="hljs-number">3.186</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">122.668</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:402(select)</span>
+  <span class="hljs-number">1641352</span>  <span class="hljs-number">118.799</span>    <span class="hljs-number">0.000</span>  <span class="hljs-number">118.799</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;poll&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;select.poll&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.220</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">42.888</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:681(__init__)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">4.400</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">39.364</span>    <span class="hljs-number">0.001</span> <span class="hljs-string">subprocess.py:1412(_execute_child)</span>
+  <span class="hljs-number">1691919</span>   <span class="hljs-number">25.759</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">25.759</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.read</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">3.863</span>    <span class="hljs-number">0.000</span>   <span class="hljs-number">13.938</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:14(bit_flip)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">3.587</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">9.991</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:256(choice)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">7.495</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.495</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">_posixsubprocess.fork_exec</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.148</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">7.081</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:105(create_new)</span>
+  <span class="hljs-number">7950000</span>    <span class="hljs-number">3.884</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">5.764</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">random.py:224(_randbelow)</span>
+   <span class="hljs-number">200000</span>    <span class="hljs-number">4.582</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.582</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">io.open</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">4.192</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">4.192</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;close&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_io.BufferedRandom&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.339</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.612</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:617(get_exec_path)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.641</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">3.309</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subpro.py:8(get_bytes)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.077</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.822</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1014(wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.432</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.746</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1621(_wait)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.256</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.735</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:351(register)</span>
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.619</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.422</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:234(register)</span>
+   <span class="hljs-number">350000</span>    <span class="hljs-number">0.380</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.402</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1471(&lt;genexpr&gt;)</span>
+ <span class="hljs-number">12066004</span>    <span class="hljs-number">1.335</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.335</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;getrandbits&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;_random.Random&#x27;</span> <span class="hljs-string">objects</span>&#125;
+    <span class="hljs-number">50000</span>    <span class="hljs-number">0.063</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.222</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">subprocess.py:1608(_try_wait)</span>
+    <span class="hljs-number">50000</span>    <span class="hljs-number">1.160</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.160</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">built-in</span> <span class="hljs-string">method</span> <span class="hljs-string">posix.waitpid</span>&#125;
+   <span class="hljs-number">100000</span>    <span class="hljs-number">0.519</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.143</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">os.py:674(__getitem__)</span>
+  <span class="hljs-number">1691352</span>    <span class="hljs-number">0.902</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.097</span>    <span class="hljs-number">0.000</span> <span class="hljs-string">selectors.py:66(__len__)</span>
+  <span class="hljs-number">7234121</span>    <span class="hljs-number">1.023</span>    <span class="hljs-number">0.000</span>    <span class="hljs-number">1.023</span>    <span class="hljs-number">0.000</span> &#123;<span class="hljs-string">method</span> <span class="hljs-string">&#x27;append&#x27;</span> <span class="hljs-string">of</span> <span class="hljs-string">&#x27;list&#x27;</span> <span class="hljs-string">objects</span>&#125;
+<span class="hljs-string">-----SNIP-----</span></code></pre>
+
+<p>看起来我们总共花了<code>213s</code>，但并没有真正发现任何<code>bug</code>，这很遗憾，但可能只是运气原因，让我们在同样的情况下运行我们的<code>C++ fuzzer</code>，并监测其输出。</p>
+<p>在这里，我们得到了一个差不多的时间，但有很大的提升。</p>
+<pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# ./blogcpp ~/jpegs/Canon_40D.jpg <span class="hljs-number">50000</span>
+Execution Time: <span class="hljs-number">170829</span>ms</code></pre>
+
+<p>这是一个相当大的提升，43秒，这缩短了我们的<code>Python fuzzer</code>20%的时间</p>
+<p>让我们继续跑一段时间的<code>C++ fuzzer</code>，看看是否我们能找到任何<code>bugs</code> :)</p>
+<h2 id="Bugs-on-Our-New-Target"><a href="#Bugs-on-Our-New-Target" class="headerlink" title="Bugs on Our New Target!"></a>Bugs on Our New Target!</h2><p>在再次运行<code>fuzzer</code>大约<code>10s</code>后，我得到了以下这个终端输出：</p>
+<pre><code class="hljs elixir">root<span class="hljs-variable">@kali</span><span class="hljs-symbol">:~</span><span class="hljs-comment"># ./blogcpp ~/jpegs/Canon_40D.jpg 1000000</span>
+Floating Point!</code></pre>
+
+<p>这似乎我们满足了<code>a Floating Point exception</code>的需求</p>
+<p>我们应该有一个很棒的<code>jpg</code>在<code>cppcrashes</code>文件夹中等着我们</p>
+<pre><code class="hljs elixir">root<span class="hljs-variable">@kali</span><span class="hljs-symbol">:~/cppcrashes</span><span class="hljs-comment"># ls</span>
+crash.<span class="hljs-number">522</span>.jpg</code></pre>
+
+<p>让我们通过对这个样本运行<code>exiv2</code>来证实这个错误。</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">root</span>@kali:~/cppcrashes# exiv<span class="hljs-number">2</span> pr -v crash.<span class="hljs-number">522</span>.jpg
+<span class="hljs-attribute">File</span> <span class="hljs-number">1</span>/<span class="hljs-number">1</span>: crash.<span class="hljs-number">522</span>.jpg
+<span class="hljs-attribute">Error</span>: Offset of directory Image, entry <span class="hljs-number">0</span>x<span class="hljs-number">011</span>b is out of bounds: Offset = <span class="hljs-number">0</span>x<span class="hljs-number">080000</span>ae; truncating the entry
+<span class="hljs-attribute">Warning</span>: Directory Image, entry <span class="hljs-number">0</span>x<span class="hljs-number">8825</span> has unknown Exif (TIFF) type <span class="hljs-number">68</span>; setting type size <span class="hljs-number">1</span>.
+<span class="hljs-attribute">Warning</span>: Directory Image, entry <span class="hljs-number">0</span>x<span class="hljs-number">8825</span> doesn&#x27;t look like a sub-IFD.
+<span class="hljs-attribute">File</span> name       : crash.<span class="hljs-number">522</span>.jpg
+<span class="hljs-attribute">File</span> size       : <span class="hljs-number">7958</span> Bytes
+<span class="hljs-attribute">MIME</span> type       : image/jpeg
+<span class="hljs-attribute">Image</span> size      : <span class="hljs-number">100</span> x <span class="hljs-number">68</span>
+<span class="hljs-attribute">Camera</span> make     : Aanon
+<span class="hljs-attribute">Camera</span> model    : Canon EOS <span class="hljs-number">40</span>D
+<span class="hljs-attribute">Image</span> timestamp : <span class="hljs-number">2008</span>:<span class="hljs-number">05</span>:<span class="hljs-number">30</span> <span class="hljs-number">15</span>:<span class="hljs-number">56</span>:<span class="hljs-number">01</span>
+<span class="hljs-attribute">Image</span> number    : 
+<span class="hljs-attribute">Exposure</span> time   : <span class="hljs-number">1</span>/<span class="hljs-number">160</span> s
+<span class="hljs-attribute">Aperture</span>        : F<span class="hljs-number">7</span>.<span class="hljs-number">1</span>
+<span class="hljs-attribute">Floating</span> point exception</code></pre>
+
+<p>我们确实发现了一个新的<code>bug</code>! 这实在是太令人兴奋了，我们应该向<code>Github</code>上的<code>exiv2</code>开发者发布一份<code>bug report</code></p>
+<p>为了找点有趣的，让我们比较一下我们的原始<code>fuzzer</code>在50,000次迭代中的表现：</p>
+<pre><code class="hljs basic"><span class="hljs-symbol">123052109 </span>function <span class="hljs-keyword">calls</span> (<span class="hljs-number">123001828</span> primitive <span class="hljs-keyword">calls</span>) in <span class="hljs-number">6243.939</span> seconds</code></pre>
+
+<p>正如你所看到的，<code>6243s</code>明显比我们的<code>C++ fuzzer</code>基准的<code>170s</code>慢</p>
+<h2 id="Addendum-15-May-2020"><a href="#Addendum-15-May-2020" class="headerlink" title="Addendum 15/May/2020"></a>Addendum 15/May/2020</h2><p>仅试试通过移植<code>C++ fuzzer</code>到<code>C</code>上，我自己也做了一些适当的改进，其中一个我所修改的逻辑为仅从原始有效的图像中收集一次数据，然后在每次<code>fuzzing</code>迭代把数据复制到新分配的缓冲区，之后再在新分配的缓冲区中执行变异操作，这个与<code>C++ fuzzer</code>基本相同的<code>C</code>版本比<code>C++</code>执行的效果更好，这是这两个迭代<code>200k</code>次之间的对比（你可以忽略这个<code>crash</code>的发现数，因为这个<code>fuzzer</code>是相当愚蠢且100%随机的）：</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">h0mbre</span>:~$ time ./cppfuzz Canon_<span class="hljs-number">40</span>D.jpg <span class="hljs-number">200000</span>
+<span class="hljs-section">&lt;snipped_results&gt;</span>
+
+<span class="hljs-attribute">real</span>    <span class="hljs-number">10</span>m<span class="hljs-number">45</span>.<span class="hljs-number">371</span>s
+<span class="hljs-attribute">user</span>    <span class="hljs-number">7</span>m<span class="hljs-number">14</span>.<span class="hljs-number">561</span>s
+<span class="hljs-attribute">sys</span>     <span class="hljs-number">3</span>m<span class="hljs-number">10</span>.<span class="hljs-number">529</span>s
+
+<span class="hljs-attribute">h0mbre</span>:~$ time ./cfuzz Canon_<span class="hljs-number">40</span>D.jpg <span class="hljs-number">200000</span>
+<span class="hljs-section">&lt;snipped_results&gt;</span>
+
+<span class="hljs-attribute">real</span>    <span class="hljs-number">10</span>m<span class="hljs-number">7</span>.<span class="hljs-number">686</span>s
+<span class="hljs-attribute">user</span>    <span class="hljs-number">7</span>m<span class="hljs-number">27</span>.<span class="hljs-number">503</span>s
+<span class="hljs-attribute">sys</span>     <span class="hljs-number">2</span>m<span class="hljs-number">20</span>.<span class="hljs-number">843</span>s</code></pre>
+
+<p>因此，在超过<code>200k</code>次的迭代中，我们以节省<code>35-40s</code>结束改进，这个在我们的测试中是十分典型的，因此，仅仅通过少量的逻辑更改和使用较少的<code>C++</code>提供的抽象接口中，我们节省了大量的<code>sys</code>的时间，我们的速度大概提升了<code>5%</code></p>
+<h3 id="Monitoring-Child-Process-Exit-Status"><a href="#Monitoring-Child-Process-Exit-Status" class="headerlink" title="Monitoring Child Process Exit Status"></a>Monitoring Child Process Exit Status</h3><p>在完成<code>C</code>的翻译后，我去推特询问了有关性能改进的建议，<a target="_blank" rel="noopener" href="https://twitter.com/lcamtuf">@lcamtuf</a>，<code>AFL</code>的创建者，向我解释说，我不应该在我的代码中用<code>popen</code>，因为它会生成一个<code>shell</code>并且性能很差，这是我寻求帮助的代码片段：</p>
+<pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">exif</span><span class="hljs-params">(<span class="hljs-keyword">int</span> iteration)</span> </span>&#123;
+    
+    FILE *fileptr;
+    
+    <span class="hljs-comment">//fileptr = popen(&quot;exif_bin target.jpeg -verbose &gt;/dev/null 2&gt;&amp;1&quot;, &quot;r&quot;);</span>
+    fileptr = popen(<span class="hljs-string">&quot;exiv2 pr -v mutated.jpeg &gt;/dev/null 2&gt;&amp;1&quot;</span>, <span class="hljs-string">&quot;r&quot;</span>);
+
+    <span class="hljs-keyword">int</span> status = WEXITSTATUS(pclose(fileptr));
+    <span class="hljs-keyword">switch</span>(status) &#123;
+        <span class="hljs-keyword">case</span> <span class="hljs-number">253</span>:
+            <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+            <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">default</span>:
+            crashes++;
+            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\r[&gt;] Crashes: %d&quot;</span>, crashes);
+            fflush(<span class="hljs-built_in">stdout</span>);
+            <span class="hljs-keyword">char</span> command[<span class="hljs-number">50</span>];
+            <span class="hljs-built_in">sprintf</span>(command, <span class="hljs-string">&quot;cp mutated.jpeg ccrashes/crash.%d.%d&quot;</span>,
+             iteration,status);
+            system(command);
+            <span class="hljs-keyword">break</span>;
+    &#125;
+&#125;</code></pre>
+
+<p>正如你所看到的，我们使用<code>popen()</code>，运行一个<code>shell-command</code>，然后关闭子进程的文件指针，返回用<code>WEXITSTATUS</code>宏监控的<code>exit-status</code>，我正在过滤掉一些我不关心的<code>exit codes</code>，如253、0和1，并希望看到一些与我们已经用<code>C++ fuzzer</code>发现的<code>floating point errors</code>有关的代码，或甚至可能是一个<code>segfault</code>，<code>@lcamtuf</code>建议我不使用<code>popen()</code>，而是调用<code>fork()</code>来生成一个子进程，<code>execvp()</code>让子进程执行一个命令，最后使用<code>waitpid()</code>来等待子进程终止并返回退出状态。</p>
+<p>由于我们在这个<code>syscall</code>路径中没有一个合适的<code>shell</code>，我不得不同时打开一个<code>/dev/null</code>的句柄，并调用<code>dup2()</code>路由<code>stdout</code>和<code>stderr</code>到<code>/dev/null</code>，因为我们并不关心命令输出，我还使用了<code>WTERMSIG</code>宏来检索在<code>WIFSIGNALED</code>宏返回真时终止子进程的信号，这将表明我们得到了一个<code>segfault</code>或<code>floating point exception</code>，等等，所以现在，我们更新的函数看起来像这样：</p>
+<pre><code class="hljs c"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">exif</span><span class="hljs-params">(<span class="hljs-keyword">int</span> iteration)</span> </span>&#123;
+    
+    <span class="hljs-keyword">char</span>* file = <span class="hljs-string">&quot;exiv2&quot;</span>;
+    <span class="hljs-keyword">char</span>* argv[<span class="hljs-number">4</span>];
+    argv[<span class="hljs-number">0</span>] = <span class="hljs-string">&quot;pr&quot;</span>;
+    argv[<span class="hljs-number">1</span>] = <span class="hljs-string">&quot;-v&quot;</span>;
+    argv[<span class="hljs-number">2</span>] = <span class="hljs-string">&quot;mutated.jpeg&quot;</span>;
+    argv[<span class="hljs-number">3</span>] = <span class="hljs-literal">NULL</span>;
+    <span class="hljs-keyword">pid_t</span> child_pid;
+    <span class="hljs-keyword">int</span> child_status;
+
+    child_pid = fork();
+    <span class="hljs-keyword">if</span> (child_pid == <span class="hljs-number">0</span>) &#123;
+        <span class="hljs-comment">// this means we&#x27;re the child process</span>
+        <span class="hljs-keyword">int</span> fd = open(<span class="hljs-string">&quot;/dev/null&quot;</span>, O_WRONLY);
+
+        <span class="hljs-comment">// dup both stdout and stderr and send them to /dev/null</span>
+        dup2(fd, <span class="hljs-number">1</span>);
+        dup2(fd, <span class="hljs-number">2</span>);
+        close(fd);
+
+        execvp(file, argv);
+        <span class="hljs-comment">// shouldn&#x27;t return, if it does, we have an error with the command</span>
+        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[!] Unknown command for execvp, exiting...\n&quot;</span>);
+        <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// this is run by the parent process</span>
+        <span class="hljs-keyword">do</span> &#123;
+            <span class="hljs-keyword">pid_t</span> tpid = waitpid(child_pid, &amp;child_status, WUNTRACED |
+             WCONTINUED);
+            <span class="hljs-keyword">if</span> (tpid == <span class="hljs-number">-1</span>) &#123;
+                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;[!] Waitpid failed!\n&quot;</span>);
+                perror(<span class="hljs-string">&quot;waitpid&quot;</span>);
+            &#125;
+            <span class="hljs-keyword">if</span> (WIFEXITED(child_status)) &#123;
+                <span class="hljs-comment">//printf(&quot;WIFEXITED: Exit Status: %d\n&quot;, WEXITSTATUS(child_status));</span>
+            &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (WIFSIGNALED(child_status)) &#123;
+                crashes++;
+                <span class="hljs-keyword">int</span> exit_status = WTERMSIG(child_status);
+                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\r[&gt;] Crashes: %d&quot;</span>, crashes);
+                fflush(<span class="hljs-built_in">stdout</span>);
+                <span class="hljs-keyword">char</span> command[<span class="hljs-number">50</span>];
+                <span class="hljs-built_in">sprintf</span>(command, <span class="hljs-string">&quot;cp mutated.jpeg ccrashes/%d.%d&quot;</span>, iteration, 
+                exit_status);
+                system(command);
+            &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (WIFSTOPPED(child_status)) &#123;
+                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;WIFSTOPPED: Exit Status: %d\n&quot;</span>, WSTOPSIG(child_status));
+            &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (WIFCONTINUED(child_status)) &#123;
+                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;WIFCONTINUED: Exit Status: Continued.\n&quot;</span>);
+            &#125;
+        &#125; <span class="hljs-keyword">while</span> (!WIFEXITED(child_status) &amp;&amp; !WIFSIGNALED(child_status));
+    &#125;
+&#125;</code></pre>
+
+<p>你可以看到，这极大地提高了我们<code>200k</code>次迭代基准测试的性能：</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">h0mbre</span>:~$ time ./cfuzz<span class="hljs-number">2</span> Canon_<span class="hljs-number">40</span>D.jpg <span class="hljs-number">200000</span>
+<span class="hljs-section">&lt;snipped_results&gt;</span>
+
+<span class="hljs-attribute">real</span>    <span class="hljs-number">8</span>m<span class="hljs-number">30</span>.<span class="hljs-number">371</span>s
+<span class="hljs-attribute">user</span>    <span class="hljs-number">6</span>m<span class="hljs-number">10</span>.<span class="hljs-number">219</span>s
+<span class="hljs-attribute">sys</span>     <span class="hljs-number">2</span>m<span class="hljs-number">2</span>.<span class="hljs-number">098</span>s</code></pre>
+
+<h3 id="Summary-of-Results"><a href="#Summary-of-Results" class="headerlink" title="Summary of Results"></a>Summary of Results</h3><ul>
+<li>C++ Fuzzer – 310 iterations/sec</li>
+<li>C Fuzzer – 329 iterations/sec (+ 6%)</li>
+<li>C Fuzzer 2.0 – 392 iterations/sec (+ 26%)</li>
+</ul>
+<p>感谢<a target="_blank" rel="noopener" href="https://twitter.com/lcamtuf">@lcamtuf</a>和<a target="_blank" rel="noopener" href="https://twitter.com/carste1n">@carste1n</a>的帮助</p>
+<p>我已经把代码上传到<code>https://github.com/h0mbre/Fuzzing/tree/master/JPEGMutation</code></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Fuzz/">Fuzz</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/fuzz/">fuzz</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/04/28/fuzzing%20like%20a%20caveman/">
+                        <span class="hidden-mobile">Fuzzing Like A Caveman 译</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Fuzzing Like A Caveman2: Improving Performance 译&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
