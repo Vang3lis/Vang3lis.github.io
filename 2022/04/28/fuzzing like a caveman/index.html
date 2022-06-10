@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="Vang3lis">
   <meta name="keywords" content="">
-  <title>Fuzzing Like A Caveman 翻译 - Vang3lis&#39;s Blog</title>
+  <title>Fuzzing Like A Caveman 译 - Vang3lis&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 
@@ -183,7 +183,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.7k 字
+      8.5k 字
     </span>
   
 
@@ -193,7 +193,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      131
+      127
        分钟
     </span>
   
@@ -223,11 +223,10 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto" id="post">
             <!-- SEO header -->
-            <h1 style="display: none">Fuzzing Like A Caveman 翻译</h1>
+            <h1 style="display: none">Fuzzing Like A Caveman 译</h1>
             
             <div class="markdown-body" id="post-body">
               <p>原文为 <a target="_blank" rel="noopener" href="https://h0mbre.github.io/Fuzzing-Like-A-Caveman">Fuzzing-Like-A-Caveman</a>，本文章仅为个人理解的翻译和备份</p>
-<p>[toc]</p>
 <h2 id="Intoduction"><a href="#Intoduction" class="headerlink" title="Intoduction"></a>Intoduction</h2><p>在过去的几个月里，我一直在被动地消化大量与模糊测试相关的材料，因为我主要尝试将我的<code>Windows exploitation game</code>从<code>Noob-level</code>提高到<code>1%-Less-Noob-Level</code>，而且我发现它相当的迷人，在这篇文章中，我将向你们展示如何创建一个非常简单变异的<code>fuzzer</code>，希望我们可以利用这个<code>fuzzer</code>在一些开源项目中找到一些<code>crashes</code>。</p>
 <p>我们将创建的这个<code>fuzzer</code>是跟随着 <a target="_blank" rel="noopener" href="https://twitter.com/gynvael?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor">@gynvael’s fuzzing tutorial on YouTube</a>实现的，我不知道<code>Gynvael</code>有视频，所以现在我有几十个小时的内容可以添加到无止尽的<code>watch/read</code>列表中。</p>
 <p>我也必须要说<a target="_blank" rel="noopener" href="https://www.youtube.com/user/gamozolabs/videos">Brandon Faulk’s fuzzing streams</a>是非常好的，虽然我不能理解近乎<code>99%</code>的<code>Brandon says</code>所说的事情，但是这些视频的内容是吸引人的，到目前为止，我个人最喜欢的是他对<code>calc.exe</code>和<code>c-tags</code>的<code>fuzzing</code>，他也有一个关于<code>fuzzing</code>概念特别好的介绍的视频：<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=SngK4W4tVc0">NYU Fuzzing Talk</a></p>
@@ -261,30 +260,30 @@ Canon: JPEG image data, JFIF standard <span class="hljs-number">1.01</span>, res
 <p>因为我们不像去改变<code>image</code>的长度或者文件的类型，所以让我们继续并计划尽可能保持<code>SOI</code>和<code>EOI</code>标记完整，我们并不想插入<code>0xFFD9</code>到图像中间，以至于这会截断图像或者导致解析器以<code>non-crashy way</code>而产生混乱（<code>Non-crashy</code>并不是一个真实的词），这也可能会被误导也许我们也应该在字节流中随机放置<code>EOI</code>标记？来我们试试看。</p>
 <h2 id="Starting-Our-Fuzzer"><a href="#Starting-Our-Fuzzer" class="headerlink" title="Starting Our Fuzzer"></a>Starting Our Fuzzer</h2><p>这我们将做的第一件事情就是提取<code>JPEG</code>中的所有字节，我们希望将其用作我们的<code>valid</code>输入蓝本，当然我们会对其进行变异。</p>
 <p>我们的代码将会从写成这样开始：</p>
-<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+<pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python3</span>
 
-import sys
+<span class="hljs-keyword">import</span> sys
 
-# read bytes from our valid JPEG and return them in a mutable bytearray 
-def get_bytes(filename):
-	f &#x3D; open(filename, &quot;rb&quot;).read()
-	return bytearray(f)
+<span class="hljs-comment"># read bytes from our valid JPEG and return them in a mutable bytearray </span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_bytes</span>(<span class="hljs-params">filename</span>):</span>
+    f = open(filename, <span class="hljs-string">&quot;rb&quot;</span>).read()
+    <span class="hljs-keyword">return</span> bytearray(f)
 
-if len(sys.argv) &lt; 2:
-	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
-else:
-	filename &#x3D; sys.argv[1]
-	data &#x3D; get_bytes(filename)</code></pre>
+<span class="hljs-keyword">if</span> len(sys.argv) &lt; <span class="hljs-number">2</span>:
+    print(<span class="hljs-string">&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;</span>)
+<span class="hljs-keyword">else</span>:
+    filename = sys.argv[<span class="hljs-number">1</span>]
+    data = get_bytes(filename)</code></pre>
 
 <p>如果我们希望看到这个数据是长什么样的，我们可以在数组中打印最初10个左右的字节值，然后看看我们将会如何与其进行交互，我们将仅是临时添加一些类似如下的东西：</p>
-<pre><code class="hljs python3">else:
-	filename &#x3D; sys.argv[1]
-	data &#x3D; get_bytes(filename)
-	counter &#x3D; 0
-	for x in data:
-		if counter &lt; 10:
-			print(x)
-		counter +&#x3D; 1</code></pre>
+<pre><code class="hljs python"><span class="hljs-keyword">else</span>:
+    filename = sys.argv[<span class="hljs-number">1</span>]
+    data = get_bytes(filename)
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> data:
+        <span class="hljs-keyword">if</span> counter &lt; <span class="hljs-number">10</span>:
+            print(x)
+        counter += <span class="hljs-number">1</span></code></pre>
 
 <p>运行这个，显示我们正将其转换为整齐的十进制整数，在我看来，这让一切变得更为容易。</p>
 <pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# python3 fuzzer.py Canon_40D.jpg 
@@ -300,10 +299,10 @@ else:
 <span class="hljs-number">70</span></code></pre>
 
 <p>让我们快速地看看是否可以从我们的字节数组中创建一个新的合规的 <code>JPEG</code>，我们将把这个函数添加到我们的代码中并运行它。</p>
-<pre><code class="hljs python3">def create_new(data):
-	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
-	f.write(data)
-	f.close()</code></pre>
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_new</span>(<span class="hljs-params">data</span>):</span>
+    f = open(<span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-string">&quot;wb+&quot;</span>)
+    f.write(data)
+    f.close()</code></pre>
 
 <p>所以现在在我们的字典中可以获得一个<code>mutated.jpg</code>，让我们<code>hash</code>比较这两个文件，看它们是否匹配的上.</p>
 <pre><code class="hljs llvm">root<span class="hljs-title">@kali</span>:~# shasum Canon_<span class="hljs-number">40</span>D.jpg mutated.jpg 
@@ -323,35 +322,35 @@ else:
 
 <p>我们想从我们的字节数组的长度中减去4，因为我们不想计算在我们的数组中的最初的两个字节或最后连个字节，因为这些是<code>SOI</code>和<code>EOI</code>标记，我们意在保持原样。</p>
 <p>接下来我们将想要随机选择许多的<code>indexes</code>然后将这些<code>indexes</code>作为位翻转的目标，我们将继续创建一组可以修改的可能的<code>indexes</code>，然后选择其中的<code>num_of_flips</code>个进行随机的位翻转。</p>
-<pre><code class="hljs python3">indexes &#x3D; range(4, (len(data) - 4))
+<pre><code class="hljs python">indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
 
-chosen_indexes &#x3D; []
+chosen_indexes = []
 
-# iterate selecting indexes until we&#39;ve hit our num_of_flips number
-counter &#x3D; 0
-while counter &lt; num_of_flips:
-	chosen_indexes.append(random.choice(indexes))
-	counter +&#x3D; 1</code></pre>
+<span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+counter = <span class="hljs-number">0</span>
+<span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+    chosen_indexes.append(random.choice(indexes))
+    counter += <span class="hljs-number">1</span></code></pre>
 
 <p>让我们把<code>import random</code>加到我们的<code>script</code>中，并添加这些<code>debug</code>的<code>print</code>状态以确保所有的一切都能成功运转。</p>
-<pre><code class="hljs python3">print(&quot;Number of indexes chosen: &quot; + str(len(chosen_indexes)))
-print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
+<pre><code class="hljs python">print(<span class="hljs-string">&quot;Number of indexes chosen: &quot;</span> + str(len(chosen_indexes)))
+print(<span class="hljs-string">&quot;Indexes chosen: &quot;</span> + str(chosen_indexes))</code></pre>
 
 <p>我们的<code>function</code>现在是像这样：</p>
-<pre><code class="hljs python3">def bit_flip(data):
-	num_of_flips &#x3D; int((len(data) - 4) * .01)
-	indexes &#x3D; range(4, (len(data) - 4))
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
+    num_of_flips = int((len(data) - <span class="hljs-number">4</span>) * <span class="hljs-number">.01</span>)
+    indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
 
-	chosen_indexes &#x3D; []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
-	counter &#x3D; 0
-	while counter &lt; num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter +&#x3D; 1
+    <span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += <span class="hljs-number">1</span>
 
-	print(&quot;Number of indexes chosen: &quot; + str(len(chosen_indexes)))
-	print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
+    print(<span class="hljs-string">&quot;Number of indexes chosen: &quot;</span> + str(len(chosen_indexes)))
+    print(<span class="hljs-string">&quot;Indexes chosen: &quot;</span> + str(chosen_indexes))</code></pre>
 
 <p>如果我们跑这个脚本，我们将会得到一个预期的不错的输出。</p>
 <pre><code class="hljs yaml"><span class="hljs-string">root@kali:~#</span> <span class="hljs-string">python3</span> <span class="hljs-string">fuzzer.py</span> <span class="hljs-string">Canon_40D.jpg</span> 
@@ -359,10 +358,10 @@ print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
 <span class="hljs-attr">Indexes chosen:</span> [<span class="hljs-number">6580</span>, <span class="hljs-number">930</span>, <span class="hljs-number">6849</span>, <span class="hljs-number">6007</span>, <span class="hljs-number">5020</span>, <span class="hljs-number">33</span>, <span class="hljs-number">474</span>, <span class="hljs-number">4051</span>, <span class="hljs-number">7722</span>, <span class="hljs-number">5393</span>, <span class="hljs-number">3540</span>, <span class="hljs-number">54</span>, <span class="hljs-number">5290</span>, <span class="hljs-number">2106</span>, <span class="hljs-number">2544</span>, <span class="hljs-number">1786</span>, <span class="hljs-number">5969</span>, <span class="hljs-number">5211</span>, <span class="hljs-number">2256</span>, <span class="hljs-number">510</span>, <span class="hljs-number">7147</span>, <span class="hljs-number">3370</span>, <span class="hljs-number">625</span>, <span class="hljs-number">5845</span>, <span class="hljs-number">2082</span>, <span class="hljs-number">2451</span>, <span class="hljs-number">7500</span>, <span class="hljs-number">3672</span>, <span class="hljs-number">2736</span>, <span class="hljs-number">2462</span>, <span class="hljs-number">5395</span>, <span class="hljs-number">7942</span>, <span class="hljs-number">2392</span>, <span class="hljs-number">1201</span>, <span class="hljs-number">3274</span>, <span class="hljs-number">7629</span>, <span class="hljs-number">5119</span>, <span class="hljs-number">1977</span>, <span class="hljs-number">2986</span>, <span class="hljs-number">7590</span>, <span class="hljs-number">1633</span>, <span class="hljs-number">4598</span>, <span class="hljs-number">1834</span>, <span class="hljs-number">445</span>, <span class="hljs-number">481</span>, <span class="hljs-number">7823</span>, <span class="hljs-number">7708</span>, <span class="hljs-number">6840</span>, <span class="hljs-number">1596</span>, <span class="hljs-number">5212</span>, <span class="hljs-number">4277</span>, <span class="hljs-number">3894</span>, <span class="hljs-number">2860</span>, <span class="hljs-number">2912</span>, <span class="hljs-number">6755</span>, <span class="hljs-number">3557</span>, <span class="hljs-number">3535</span>, <span class="hljs-number">3745</span>, <span class="hljs-number">1780</span>, <span class="hljs-number">252</span>, <span class="hljs-number">6128</span>, <span class="hljs-number">7187</span>, <span class="hljs-number">500</span>, <span class="hljs-number">1051</span>, <span class="hljs-number">4372</span>, <span class="hljs-number">5138</span>, <span class="hljs-number">3305</span>, <span class="hljs-number">872</span>, <span class="hljs-number">6258</span>, <span class="hljs-number">2136</span>, <span class="hljs-number">3486</span>, <span class="hljs-number">5600</span>, <span class="hljs-number">651</span>, <span class="hljs-number">1624</span>, <span class="hljs-number">4368</span>, <span class="hljs-number">7076</span>, <span class="hljs-number">1802</span>, <span class="hljs-number">2335</span>, <span class="hljs-number">3553</span>]</code></pre>
 
 <p>接下来我们需要实际变异这些<code>indexes</code>上的字节，我们需要位翻转他们，我选择用一个非常<code>hacky</code>的方式去做这件事，你尽可以随意的实现你自己的方法，我们准备转换这些<code>indexes</code>上的字节到二进制字符串，并将其补齐为8位数长，让我们添加这个代码，看看我们在说些什么，我们将会转换这字节的值（就是转为十进制）到二进制串，并如果它少于8位数长时在其前面填充0，这最后一行就是调试时的临时打印。</p>
-<pre><code class="hljs python3">for x in chosen_indexes:
-    current &#x3D; data[x]
-    current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
-    current &#x3D; &quot;0&quot; * (8 - len(current)) + current</code></pre>
+<pre><code class="hljs python"><span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> chosen_indexes:
+    current = data[x]
+    current = (bin(current).replace(<span class="hljs-string">&quot;0b&quot;</span>,<span class="hljs-string">&quot;&quot;</span>))
+    current = <span class="hljs-string">&quot;0&quot;</span> * (<span class="hljs-number">8</span> - len(current)) + current</code></pre>
 
 <p>正如你所示，我们有一个不错的二进制数字作为字符串的输出。</p>
 <pre><code class="hljs angelscript"><span class="hljs-symbol">root@</span>kali:~# python3 fuzzer.py Canon_40D.jpg 
@@ -379,77 +378,77 @@ print(&quot;Indexes chosen: &quot; + str(chosen_indexes))</code></pre>
 <p>这段代码段最后的考虑是这些是字符串而不是整数，所以我们需要做的最后一件事情就是将翻转的二进制字符串转换为整数。</p>
 <p>我们将创建一个空白的列表、把每个数字降入这个列表、翻转我们随机挑选的数字，然后从所有的列表成员中构造一个新的字符串（我们必须使用这个中间列表的步骤，因为字符串是可变异的），最后我们将其转换为整数，然后返回数据给我们的<code>create_new()</code>函数以创建一个新的<code>JPEG</code>。</p>
 <p>我们的全部脚本目前是像这样：</p>
-<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+<pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python3</span>
 
-import sys
-import random
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> random
 
-# read bytes from our valid JPEG and return them in a mutable bytearray 
-def get_bytes(filename):
-	f &#x3D; open(filename, &quot;rb&quot;).read()
-	return bytearray(f)
+<span class="hljs-comment"># read bytes from our valid JPEG and return them in a mutable bytearray </span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_bytes</span>(<span class="hljs-params">filename</span>):</span>
+    f = open(filename, <span class="hljs-string">&quot;rb&quot;</span>).read()
+    <span class="hljs-keyword">return</span> bytearray(f)
 
-def bit_flip(data):
-	num_of_flips &#x3D; int((len(data) - 4) * .01)
-	indexes &#x3D; range(4, (len(data) - 4))
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
+    num_of_flips = int((len(data) - <span class="hljs-number">4</span>) * <span class="hljs-number">.01</span>)
+    indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
 
-	chosen_indexes &#x3D; []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
-	counter &#x3D; 0
-	while counter &lt; num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter +&#x3D; 1
+    <span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += <span class="hljs-number">1</span>
 
-	for x in chosen_indexes:
-		current &#x3D; data[x]
-		current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
-		current &#x3D; &quot;0&quot; * (8 - len(current)) + current
-		
-		indexes &#x3D; range(0,8)
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace(<span class="hljs-string">&quot;0b&quot;</span>,<span class="hljs-string">&quot;&quot;</span>))
+        current = <span class="hljs-string">&quot;0&quot;</span> * (<span class="hljs-number">8</span> - len(current)) + current
+        
+        indexes = range(<span class="hljs-number">0</span>,<span class="hljs-number">8</span>)
 
-		picked_index &#x3D; random.choice(indexes)
+        picked_index = random.choice(indexes)
 
-		new_number &#x3D; []
+        new_number = []
 
-		# our new_number list now has all the digits, example: [&#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;]
-		for i in current:
-			new_number.append(i)
+        <span class="hljs-comment"># our new_number list now has all the digits, example: [&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;]</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> current:
+            new_number.append(i)
 
-		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
-		if new_number[picked_index] &#x3D;&#x3D; &quot;1&quot;:
-			new_number[picked_index] &#x3D; &quot;0&quot;
-		else:
-			new_number[picked_index] &#x3D; &quot;1&quot;
+        <span class="hljs-comment"># if the number at our randomly selected index is a 1, make it a 0, and vice versa</span>
+        <span class="hljs-keyword">if</span> new_number[picked_index] == <span class="hljs-string">&quot;1&quot;</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;0&quot;</span>
+        <span class="hljs-keyword">else</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;1&quot;</span>
 
-		# create our new binary string of our bit-flipped number
-		current &#x3D; &#39;&#39;
-		for i in new_number:
-			current +&#x3D; i
+        <span class="hljs-comment"># create our new binary string of our bit-flipped number</span>
+        current = <span class="hljs-string">&#x27;&#x27;</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> new_number:
+            current += i
 
-		# convert that string to an integer
-		current &#x3D; int(current,2)
+        <span class="hljs-comment"># convert that string to an integer</span>
+        current = int(current,<span class="hljs-number">2</span>)
 
-		# change the number in our byte array to our new number we just constructed
-		data[x] &#x3D; current
+        <span class="hljs-comment"># change the number in our byte array to our new number we just constructed</span>
+        data[x] = current
 
-	return data
+    <span class="hljs-keyword">return</span> data
 
 
-# create new jpg with mutated data
-def create_new(data):
-	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
-	f.write(data)
-	f.close()
+<span class="hljs-comment"># create new jpg with mutated data</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_new</span>(<span class="hljs-params">data</span>):</span>
+    f = open(<span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-string">&quot;wb+&quot;</span>)
+    f.write(data)
+    f.close()
 
-if len(sys.argv) &lt; 2:
-	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
+<span class="hljs-keyword">if</span> len(sys.argv) &lt; <span class="hljs-number">2</span>:
+    print(<span class="hljs-string">&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;</span>)
 
-else:
-	filename &#x3D; sys.argv[1]
-	data &#x3D; get_bytes(filename)
-	mutated_data &#x3D; bit_flip(data)
-	create_new(mutated_data)</code></pre>
+<span class="hljs-keyword">else</span>:
+    filename = sys.argv[<span class="hljs-number">1</span>]
+    data = get_bytes(filename)
+    mutated_data = bit_flip(data)
+    create_new(mutated_data)</code></pre>
 
 <h2 id="Analyzing-Mutation"><a href="#Analyzing-Mutation" class="headerlink" title="Analyzing Mutation"></a>Analyzing Mutation</h2><p>如果我们跑我们的脚本，我们可以利用<code>shasum</code>这个输出，然后与原本的<code>JPEG</code>进行比较。</p>
 <pre><code class="hljs reasonml">root@kali:~# shasum <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Canon_40D</span>.</span></span>jpg mutated.jpg 
@@ -476,24 +475,24 @@ a7b619028af3d8e5ac106a697b06efcde0649249  mutated.jpg</code></pre>
 <p>如果在<code>malloc()</code>或其他类型的操作过程中对这些类型的值执行任何类型的算术运算，溢出可能就是很常见，例如如果你加<code>0x1</code>到<code>0xFF</code>在一个字节的寄存器上，它将转到<code>0x00</code>，这是无意的行为，<code>HEVD</code>实际上已经有一个与这个理念类似的整数溢出<code>bug</code>。</p>
 <p>假设我们的<code>fuzzer</code>选择<code>0x7FFFFFFF</code>作为它想要使用的魔数，该值是4个字节长，所以我们必须在数组中找到一个字节索引，并覆盖该字节加上接下来的三个字节。让我们继续并开始在我们的<code>fuzzer</code>中实现它。</p>
 <h2 id="Implementing-Mutation-Method-2"><a href="#Implementing-Mutation-Method-2" class="headerlink" title="Implementing Mutation Method #2"></a>Implementing Mutation Method #2</h2><p>首先我们将想要创建一个类似<code>Gynvael</code>做的一个元组列表，在这元组中的第一个数字是<code>magic numbers</code>的字节数，第二个数字是十进制上的字节的值。</p>
-<pre><code class="hljs python3">def magic(data):
-	magic_vals &#x3D; [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">magic</span>(<span class="hljs-params">data</span>):</span>
+    magic_vals = [
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">127</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">128</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">64</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">127</span>)
+    ]
 
-	picked_magic &#x3D; random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	print(picked_magic)</code></pre>
+    print(picked_magic)</code></pre>
 
 <p>如果我们跑这个脚本，我门就可以看到它随机在取一个<code>magic</code>值元组</p>
 <pre><code class="hljs python3">root@kali:~# python3 fuzzer.py Canon_40D.jpg 
@@ -509,80 +508,80 @@ root@kali:~# python3 fuzzer.py Canon_40D.jpg
 
 <p>我们现在需要用新的<code>magic</code>1到4字节的值复写到<code>JPEG</code>中的1到4字节的值上，我们将要建立我们可能的<code>indexes</code>就像之前那个方法一样，随机选择<code>index</code>然后覆盖这个<code>index</code>上的字节用我们<code>picked_magic</code>数字。</p>
 <p>所以，如果例如我们取的是<code>(4, 128)</code>，我们知道这是4个字节，所以这个魔数是<code>0x80000000</code>，所以我们将做些类似如下的事情：</p>
-<pre><code class="hljs python3">byte[x] &#x3D; 128
-byte[x+1] &#x3D; 0
-byte[x+2] &#x3D; 0
-byte[x+3] &#x3D; 0</code></pre>
+<pre><code class="hljs python">byte[x] = <span class="hljs-number">128</span>
+byte[x+<span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+byte[x+<span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+byte[x+<span class="hljs-number">3</span>] = <span class="hljs-number">0</span></code></pre>
 
 <p>总而言之，我们的函数如下所示：</p>
-<pre><code class="hljs python3">def magic(data):
-	magic_vals &#x3D; [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">magic</span>(<span class="hljs-params">data</span>):</span>
+    magic_vals = [
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">127</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">128</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">64</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">127</span>)
+    ]
 
-	picked_magic &#x3D; random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	length &#x3D; len(data) - 8
-	index &#x3D; range(0, length)
-	picked_index &#x3D; random.choice(index)
+    length = len(data) - <span class="hljs-number">8</span>
+    index = range(<span class="hljs-number">0</span>, length)
+    picked_index = random.choice(index)
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
-	if picked_magic[0] &#x3D;&#x3D; 1:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFF
-			data[picked_index] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 127:			# 0x7F
-			data[picked_index] &#x3D; 127
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00
-			data[picked_index] &#x3D; 0
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )</span>
+    <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:			<span class="hljs-comment"># 0x7F</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00</span>
+            data[picked_index] = <span class="hljs-number">0</span>
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
-	elif picked_magic[0] &#x3D;&#x3D; 2:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFF
-			data[picked_index] &#x3D; 255
-			data[picked_index + 1] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x0000
-			data[picked_index] &#x3D; 0
-			data[picked_index + 1] &#x3D; 0
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">2</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x0000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
 
-	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
-	elif picked_magic[0] &#x3D;&#x3D; 4:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFFFFFF
-			data[picked_index] &#x3D; 255
-			data[picked_index + 1] &#x3D; 255
-			data[picked_index + 2] &#x3D; 255
-			data[picked_index + 3] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00000000
-			data[picked_index] &#x3D; 0
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 128:			# 0x80000000
-			data[picked_index] &#x3D; 128
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 64:			# 0x40000000
-			data[picked_index] &#x3D; 64
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 127:			# 0x7FFFFFFF
-			data[picked_index] &#x3D; 127
-			data[picked_index + 1] &#x3D; 255
-			data[picked_index + 2] &#x3D; 255
-			data[picked_index + 3] &#x3D; 255
-		
-	return data</code></pre>
+    <span class="hljs-comment"># here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">4</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00000000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">128</span>:			<span class="hljs-comment"># 0x80000000</span>
+            data[picked_index] = <span class="hljs-number">128</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">64</span>:			<span class="hljs-comment"># 0x40000000</span>
+            data[picked_index] = <span class="hljs-number">64</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:			<span class="hljs-comment"># 0x7FFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        
+    <span class="hljs-keyword">return</span> data</code></pre>
 
 <h2 id="Analyzing-Mutation-2"><a href="#Analyzing-Mutation-2" class="headerlink" title="Analyzing Mutation #2"></a>Analyzing Mutation #2</h2><p>现在我们运行脚本，然后在<code>Beyond Compare</code>中分析结果，我们可以看到这个两个字节的<code>0xA6 0x76</code>将被复写成<code>0xFF 0xFF</code>。</p>
 <p><img src="/img/fuzzing_like_a_caveman/bcompare2.png" srcset="/img/loading.gif" alt="bcompare2.png"></p>
@@ -722,17 +721,17 @@ Exif IFD : DateTimeOriginal = [<span class="hljs-number">2008</span>:<span class
 <p>我们将加一个新的函数，这个将输入<code>counter</code>作为参数，这个参数为我们<code>fuzzer</code>迭代的轮数，另外一个参数是变异的数据，如果我们看到<code>Segmentation</code>在我们<code>run()</code>指令的输出里面，我们将把这个变异的数据写入文件并保存，这样我们就可以有让二进制<code>crash</code>的<code>JPEG</code>图片了。</p>
 <p>让我们创建一个新的称为<code>crashes</code>文件夹，然后我们将在这里面保存<code>JPEGs</code>，这些导致<code>crashes</code>的图片将会以<code>crash.&lt;fuzzing iteration (counter)&gt;.jpg</code>的格式保存，所以如果这个<code>fuzzing</code>迭代了100次导致了<code>a crash</code>，我们应该会得到这样的文件：<code>/crashes/crash.100.jpg</code></p>
 <p>我们将持续以保持每100次模糊测试迭代的计数打印到终端的同一行，我们的函数如下所示：</p>
-<pre><code class="hljs python3">def exif(counter,data):
-    command &#x3D; &quot;exif mutated.jpg -verbose&quot;
+<pre><code class="hljs python"><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">exif</span>(<span class="hljs-params">counter,data</span>):</span>
+    command = <span class="hljs-string">&quot;exif mutated.jpg -verbose&quot;</span>
 
-    out, returncode &#x3D; run(&quot;sh -c &quot; + quote(command), withexitstatus&#x3D;1)
+    out, returncode = run(<span class="hljs-string">&quot;sh -c &quot;</span> + quote(command), withexitstatus=<span class="hljs-number">1</span>)
 
-    if b&quot;Segmentation&quot; in out:
-    	f &#x3D; open(&quot;crashes&#x2F;crash.&#123;&#125;.jpg&quot;.format(str(counter)), &quot;ab+&quot;)
-    	f.write(data)
+    <span class="hljs-keyword">if</span> <span class="hljs-string">b&quot;Segmentation&quot;</span> <span class="hljs-keyword">in</span> out:
+        f = open(<span class="hljs-string">&quot;crashes/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
 
-    if counter % 100 &#x3D;&#x3D; 0:
-    	print(counter, end&#x3D;&quot;\r&quot;)</code></pre>
+    <span class="hljs-keyword">if</span> counter % <span class="hljs-number">100</span> == <span class="hljs-number">0</span>:
+        print(counter, end=<span class="hljs-string">&quot;\r&quot;</span>)</code></pre>
 
 <p>接下来，我们将在我们代码的最下面替换我们执行的<code>stub</code>以跑一个计数器，一旦我们达到了<code>1000</code>次迭代，我们就停止<code>fuzzing</code>，我们也将让我们的<code>fuzzer</code>随机选择一个我们变异的方法，所以它或使用位翻转或使用魔数，让我们运行它，然后在结束时检测我们的<code>crashes</code>文件夹。</p>
 <p>当<code>fuzzer</code>结束后，你可以看到我们获得了大概<code>30</code>个<code>crashes</code>。</p>
@@ -859,178 +858,178 @@ crash<span class="hljs-number">.2010</span>.jpg   crash<span class="hljs-number"
 <p>感谢博文中提到的每个人，非常感谢</p>
 <p>直到下一次！</p>
 <h2 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h2><p><code>JPEGfuzz.py</code></p>
-<pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
+<pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env python3</span>
 
-import sys
-import random
-from pexpect import run
-from pipes import quote
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> random
+<span class="hljs-keyword">from</span> pexpect <span class="hljs-keyword">import</span> run
+<span class="hljs-keyword">from</span> pipes <span class="hljs-keyword">import</span> quote
 
-# read bytes from our valid JPEG and return them in a mutable bytearray 
-def get_bytes(filename):
+<span class="hljs-comment"># read bytes from our valid JPEG and return them in a mutable bytearray </span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_bytes</span>(<span class="hljs-params">filename</span>):</span>
 
-	f &#x3D; open(filename, &quot;rb&quot;).read()
+    f = open(filename, <span class="hljs-string">&quot;rb&quot;</span>).read()
 
-	return bytearray(f)
+    <span class="hljs-keyword">return</span> bytearray(f)
 
-def bit_flip(data):
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">bit_flip</span>(<span class="hljs-params">data</span>):</span>
 
-	num_of_flips &#x3D; int((len(data) - 4) * .01)
+    num_of_flips = int((len(data) - <span class="hljs-number">4</span>) * <span class="hljs-number">.01</span>)
 
-	indexes &#x3D; range(4, (len(data) - 4))
+    indexes = range(<span class="hljs-number">4</span>, (len(data) - <span class="hljs-number">4</span>))
 
-	chosen_indexes &#x3D; []
+    chosen_indexes = []
 
-	# iterate selecting indexes until we&#39;ve hit our num_of_flips number
-	counter &#x3D; 0
-	while counter &lt; num_of_flips:
-		chosen_indexes.append(random.choice(indexes))
-		counter +&#x3D; 1
+    <span class="hljs-comment"># iterate selecting indexes until we&#x27;ve hit our num_of_flips number</span>
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; num_of_flips:
+        chosen_indexes.append(random.choice(indexes))
+        counter += <span class="hljs-number">1</span>
 
-	for x in chosen_indexes:
-		current &#x3D; data[x]
-		current &#x3D; (bin(current).replace(&quot;0b&quot;,&quot;&quot;))
-		current &#x3D; &quot;0&quot; * (8 - len(current)) + current
-		
-		indexes &#x3D; range(0,8)
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> chosen_indexes:
+        current = data[x]
+        current = (bin(current).replace(<span class="hljs-string">&quot;0b&quot;</span>,<span class="hljs-string">&quot;&quot;</span>))
+        current = <span class="hljs-string">&quot;0&quot;</span> * (<span class="hljs-number">8</span> - len(current)) + current
+        
+        indexes = range(<span class="hljs-number">0</span>,<span class="hljs-number">8</span>)
 
-		picked_index &#x3D; random.choice(indexes)
+        picked_index = random.choice(indexes)
 
-		new_number &#x3D; []
+        new_number = []
 
-		# our new_number list now has all the digits, example: [&#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;, &#39;1&#39;, &#39;0&#39;]
-		for i in current:
-			new_number.append(i)
+        <span class="hljs-comment"># our new_number list now has all the digits, example: [&#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;, &#x27;1&#x27;, &#x27;0&#x27;]</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> current:
+            new_number.append(i)
 
-		# if the number at our randomly selected index is a 1, make it a 0, and vice versa
-		if new_number[picked_index] &#x3D;&#x3D; &quot;1&quot;:
-			new_number[picked_index] &#x3D; &quot;0&quot;
-		else:
-			new_number[picked_index] &#x3D; &quot;1&quot;
+        <span class="hljs-comment"># if the number at our randomly selected index is a 1, make it a 0, and vice versa</span>
+        <span class="hljs-keyword">if</span> new_number[picked_index] == <span class="hljs-string">&quot;1&quot;</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;0&quot;</span>
+        <span class="hljs-keyword">else</span>:
+            new_number[picked_index] = <span class="hljs-string">&quot;1&quot;</span>
 
-		# create our new binary string of our bit-flipped number
-		current &#x3D; &#39;&#39;
-		for i in new_number:
-			current +&#x3D; i
+        <span class="hljs-comment"># create our new binary string of our bit-flipped number</span>
+        current = <span class="hljs-string">&#x27;&#x27;</span>
+        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> new_number:
+            current += i
 
-		# convert that string to an integer
-		current &#x3D; int(current,2)
+        <span class="hljs-comment"># convert that string to an integer</span>
+        current = int(current,<span class="hljs-number">2</span>)
 
-		# change the number in our byte array to our new number we just constructed
-		data[x] &#x3D; current
+        <span class="hljs-comment"># change the number in our byte array to our new number we just constructed</span>
+        data[x] = current
 
-	return data
+    <span class="hljs-keyword">return</span> data
 
-def magic(data):
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">magic</span>(<span class="hljs-params">data</span>):</span>
 
-	magic_vals &#x3D; [
-	(1, 255),
-	(1, 255),
-	(1, 127),
-	(1, 0),
-	(2, 255),
-	(2, 0),
-	(4, 255),
-	(4, 0),
-	(4, 128),
-	(4, 64),
-	(4, 127)
-	]
+    magic_vals = [
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">127</span>),
+    (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">2</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">255</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">0</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">128</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">64</span>),
+    (<span class="hljs-number">4</span>, <span class="hljs-number">127</span>)
+    ]
 
-	picked_magic &#x3D; random.choice(magic_vals)
+    picked_magic = random.choice(magic_vals)
 
-	length &#x3D; len(data) - 8
-	index &#x3D; range(0, length)
-	picked_index &#x3D; random.choice(index)
+    length = len(data) - <span class="hljs-number">8</span>
+    index = range(<span class="hljs-number">0</span>, length)
+    picked_index = random.choice(index)
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )
-	if picked_magic[0] &#x3D;&#x3D; 1:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFF
-			data[picked_index] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 127:		# 0x7F
-			data[picked_index] &#x3D; 127
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00
-			data[picked_index] &#x3D; 0
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (1, )</span>
+    <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:		<span class="hljs-comment"># 0x7F</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00</span>
+            data[picked_index] = <span class="hljs-number">0</span>
 
-	# here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )
-	elif picked_magic[0] &#x3D;&#x3D; 2:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFF
-			data[picked_index] &#x3D; 255
-			data[picked_index + 1] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x0000
-			data[picked_index] &#x3D; 0
-			data[picked_index + 1] &#x3D; 0
+    <span class="hljs-comment"># here we are hardcoding all the byte overwrites for all of the tuples that begin (2, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">2</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x0000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
 
-	# here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )
-	elif picked_magic[0] &#x3D;&#x3D; 4:
-		if picked_magic[1] &#x3D;&#x3D; 255:			# 0xFFFFFFFF
-			data[picked_index] &#x3D; 255
-			data[picked_index + 1] &#x3D; 255
-			data[picked_index + 2] &#x3D; 255
-			data[picked_index + 3] &#x3D; 255
-		elif picked_magic[1] &#x3D;&#x3D; 0:			# 0x00000000
-			data[picked_index] &#x3D; 0
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 128:		# 0x80000000
-			data[picked_index] &#x3D; 128
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 64:			# 0x40000000
-			data[picked_index] &#x3D; 64
-			data[picked_index + 1] &#x3D; 0
-			data[picked_index + 2] &#x3D; 0
-			data[picked_index + 3] &#x3D; 0
-		elif picked_magic[1] &#x3D;&#x3D; 127:		# 0x7FFFFFFF
-			data[picked_index] &#x3D; 127
-			data[picked_index + 1] &#x3D; 255
-			data[picked_index + 2] &#x3D; 255
-			data[picked_index + 3] &#x3D; 255
-		
-	return data
+    <span class="hljs-comment"># here we are hardcoding all of the byte overwrites for all of the tuples that being (4, )</span>
+    <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">0</span>] == <span class="hljs-number">4</span>:
+        <span class="hljs-keyword">if</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">255</span>:			<span class="hljs-comment"># 0xFFFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">0</span>:			<span class="hljs-comment"># 0x00000000</span>
+            data[picked_index] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">128</span>:		<span class="hljs-comment"># 0x80000000</span>
+            data[picked_index] = <span class="hljs-number">128</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">64</span>:			<span class="hljs-comment"># 0x40000000</span>
+            data[picked_index] = <span class="hljs-number">64</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">0</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">0</span>
+        <span class="hljs-keyword">elif</span> picked_magic[<span class="hljs-number">1</span>] == <span class="hljs-number">127</span>:		<span class="hljs-comment"># 0x7FFFFFFF</span>
+            data[picked_index] = <span class="hljs-number">127</span>
+            data[picked_index + <span class="hljs-number">1</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">2</span>] = <span class="hljs-number">255</span>
+            data[picked_index + <span class="hljs-number">3</span>] = <span class="hljs-number">255</span>
+        
+    <span class="hljs-keyword">return</span> data
 
-# create new jpg with mutated data
-def create_new(data):
+<span class="hljs-comment"># create new jpg with mutated data</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">create_new</span>(<span class="hljs-params">data</span>):</span>
 
-	f &#x3D; open(&quot;mutated.jpg&quot;, &quot;wb+&quot;)
-	f.write(data)
-	f.close()
+    f = open(<span class="hljs-string">&quot;mutated.jpg&quot;</span>, <span class="hljs-string">&quot;wb+&quot;</span>)
+    f.write(data)
+    f.close()
 
-def exif(counter,data):
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">exif</span>(<span class="hljs-params">counter,data</span>):</span>
 
-    command &#x3D; &quot;exif mutated.jpg -verbose&quot;
+    command = <span class="hljs-string">&quot;exif mutated.jpg -verbose&quot;</span>
 
-    out, returncode &#x3D; run(&quot;sh -c &quot; + quote(command), withexitstatus&#x3D;1)
+    out, returncode = run(<span class="hljs-string">&quot;sh -c &quot;</span> + quote(command), withexitstatus=<span class="hljs-number">1</span>)
 
-    if b&quot;Segmentation&quot; in out:
-    	f &#x3D; open(&quot;crashes2&#x2F;crash.&#123;&#125;.jpg&quot;.format(str(counter)), &quot;ab+&quot;)
-    	f.write(data)
+    <span class="hljs-keyword">if</span> <span class="hljs-string">b&quot;Segmentation&quot;</span> <span class="hljs-keyword">in</span> out:
+        f = open(<span class="hljs-string">&quot;crashes2/crash.&#123;&#125;.jpg&quot;</span>.format(str(counter)), <span class="hljs-string">&quot;ab+&quot;</span>)
+        f.write(data)
 
-    if counter % 100 &#x3D;&#x3D; 0:
-    	print(counter, end&#x3D;&quot;\r&quot;)
+    <span class="hljs-keyword">if</span> counter % <span class="hljs-number">100</span> == <span class="hljs-number">0</span>:
+        print(counter, end=<span class="hljs-string">&quot;\r&quot;</span>)
 
-if len(sys.argv) &lt; 2:
-	print(&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;)
+<span class="hljs-keyword">if</span> len(sys.argv) &lt; <span class="hljs-number">2</span>:
+    print(<span class="hljs-string">&quot;Usage: JPEGfuzz.py &lt;valid_jpg&gt;&quot;</span>)
 
-else:
-	filename &#x3D; sys.argv[1]
-	counter &#x3D; 0
-	while counter &lt; 100000:
-		data &#x3D; get_bytes(filename)
-		functions &#x3D; [0, 1]
-		picked_function &#x3D; random.choice(functions)
-		if picked_function &#x3D;&#x3D; 0:
-			mutated &#x3D; magic(data)
-			create_new(mutated)
-			exif(counter,mutated)
-		else:
-			mutated &#x3D; bit_flip(data)
-			create_new(mutated)
-			exif(counter,mutated)
+<span class="hljs-keyword">else</span>:
+    filename = sys.argv[<span class="hljs-number">1</span>]
+    counter = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">while</span> counter &lt; <span class="hljs-number">100000</span>:
+        data = get_bytes(filename)
+        functions = [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>]
+        picked_function = random.choice(functions)
+        <span class="hljs-keyword">if</span> picked_function == <span class="hljs-number">0</span>:
+            mutated = magic(data)
+            create_new(mutated)
+            exif(counter,mutated)
+        <span class="hljs-keyword">else</span>:
+            mutated = bit_flip(data)
+            create_new(mutated)
+            exif(counter,mutated)
 
-		counter +&#x3D; 1</code></pre>
+        counter += <span class="hljs-number">1</span></code></pre>
 
 <p><code>triage.py</code></p>
 <pre><code class="hljs python3">#!&#x2F;usr&#x2F;bin&#x2F;env python3
@@ -1040,71 +1039,71 @@ from os import listdir
 
 def get_files():
 
-	files &#x3D; os.listdir(&quot;&#x2F;root&#x2F;crashes&#x2F;&quot;)
+    files &#x3D; os.listdir(&quot;&#x2F;root&#x2F;crashes&#x2F;&quot;)
 
-	return files
+    return files
 
 def triage_files(files):
 
-	for x in files:
+    for x in files:
 
-		original_output &#x3D; os.popen(&quot;exifsan &quot; + x + &quot; -verbose 2&gt;&amp;1&quot;).read()
-		output &#x3D; original_output
-		
-		# Getting crash reason
-		crash &#x3D; &#39;&#39;
-		if &quot;SEGV&quot; in output:
-			crash &#x3D; &quot;SEGV&quot;
-		elif &quot;heap-buffer-overflow&quot; in output:
-			crash &#x3D; &quot;HBO&quot;
-		else:
-			crash &#x3D; &quot;UNKNOWN&quot;
-		
+        original_output &#x3D; os.popen(&quot;exifsan &quot; + x + &quot; -verbose 2&gt;&amp;1&quot;).read()
+        output &#x3D; original_output
+        
+        # Getting crash reason
+        crash &#x3D; &#39;&#39;
+        if &quot;SEGV&quot; in output:
+            crash &#x3D; &quot;SEGV&quot;
+        elif &quot;heap-buffer-overflow&quot; in output:
+            crash &#x3D; &quot;HBO&quot;
+        else:
+            crash &#x3D; &quot;UNKNOWN&quot;
+        
 
-		if crash &#x3D;&#x3D; &quot;HBO&quot;:
-			output &#x3D; output.split(&quot;\n&quot;)
-			counter &#x3D; 0
-			while counter &lt; len(output):
-				if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
-					target_line &#x3D; output[counter + 1]
-					target_line2 &#x3D; output[counter + 2]
-					counter +&#x3D; 1
-				else:
-					counter +&#x3D; 1
-			target_line &#x3D; target_line.split(&quot; &quot;)
-			address &#x3D; target_line[5].replace(&quot;0x&quot;,&quot;&quot;)
-			
+        if crash &#x3D;&#x3D; &quot;HBO&quot;:
+            output &#x3D; output.split(&quot;\n&quot;)
+            counter &#x3D; 0
+            while counter &lt; len(output):
+                if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
+                    target_line &#x3D; output[counter + 1]
+                    target_line2 &#x3D; output[counter + 2]
+                    counter +&#x3D; 1
+                else:
+                    counter +&#x3D; 1
+            target_line &#x3D; target_line.split(&quot; &quot;)
+            address &#x3D; target_line[5].replace(&quot;0x&quot;,&quot;&quot;)
+            
 
-			target_line2 &#x3D; target_line2.split(&quot; &quot;)
-			operation &#x3D; target_line2[0]
-			
+            target_line2 &#x3D; target_line2.split(&quot; &quot;)
+            operation &#x3D; target_line2[0]
+            
 
-		elif crash &#x3D;&#x3D; &quot;SEGV&quot;:
-			output &#x3D; output.split(&quot;\n&quot;)
-			counter &#x3D; 0
-			while counter &lt; len(output):
-				if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
-					target_line &#x3D; output[counter + 1]
-					target_line2 &#x3D; output[counter + 2]
-					counter +&#x3D; 1
-				else:
-					counter +&#x3D; 1
-			if &quot;unknown address&quot; in target_line:
-				address &#x3D; &quot;00000000&quot;
-			else:
-				address &#x3D; None
+        elif crash &#x3D;&#x3D; &quot;SEGV&quot;:
+            output &#x3D; output.split(&quot;\n&quot;)
+            counter &#x3D; 0
+            while counter &lt; len(output):
+                if output[counter] &#x3D;&#x3D; &quot;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&quot;:
+                    target_line &#x3D; output[counter + 1]
+                    target_line2 &#x3D; output[counter + 2]
+                    counter +&#x3D; 1
+                else:
+                    counter +&#x3D; 1
+            if &quot;unknown address&quot; in target_line:
+                address &#x3D; &quot;00000000&quot;
+            else:
+                address &#x3D; None
 
-			if &quot;READ&quot; in target_line2:
-				operation &#x3D; &quot;READ&quot;
-			elif &quot;WRITE&quot; in target_line2:
-				operation &#x3D; &quot;WRITE&quot;
-			else:
-				operation &#x3D; None
+            if &quot;READ&quot; in target_line2:
+                operation &#x3D; &quot;READ&quot;
+            elif &quot;WRITE&quot; in target_line2:
+                operation &#x3D; &quot;WRITE&quot;
+            else:
+                operation &#x3D; None
 
-		log_name &#x3D; (x.replace(&quot;.jpg&quot;,&quot;&quot;) + &quot;.&quot; + crash + &quot;.&quot; + address + &quot;.&quot; + operation)
-		f &#x3D; open(log_name,&quot;w+&quot;)
-		f.write(original_output)
-		f.close()
+        log_name &#x3D; (x.replace(&quot;.jpg&quot;,&quot;&quot;) + &quot;.&quot; + crash + &quot;.&quot; + address + &quot;.&quot; + operation)
+        f &#x3D; open(log_name,&quot;w+&quot;)
+        f.write(original_output)
+        f.close()
 
 
 
@@ -1283,7 +1282,7 @@ triage_files(files)</code></pre>
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Fuzzing Like A Caveman 翻译&nbsp;",
+        "Fuzzing Like A Caveman 译&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,
