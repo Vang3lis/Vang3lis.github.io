@@ -172,8 +172,8 @@
               
   <div class="mt-3 post-meta">
     <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-    <time datetime="2022-06-25 11:01" pubdate>
-      2022年6月25日 上午
+    <time datetime="2022-06-29 09:53" pubdate>
+      2022年6月29日 上午
     </time>
   </div>
 
@@ -277,7 +277,7 @@ compiler：vs2022</code></pre>
 <p>写什么地方？<br>=&gt; 内核中的函数指针<br>=&gt; 那这个函数指针对应的接口应该有什么特征呢？<br>=&gt; 应该较少被内核调用，否则被其他地方调用了，就可能导致内核崩溃 &amp;&amp; 可以通过用户态的一个接口进行调用，从而触发对函数指针的调用<br>=&gt; 找到<code>HalDispatchTable</code>中偏移为<code>0x8</code>位置的<code>xHalSetSystemInformation</code>函数指针接口完美符合，上层可由<code>NtQueryIntervalProfile</code>或<code>NtSetIntervalProfile</code>调用</p>
 <p>（P.S. 这里的思路可参考这个<a target="_blank" rel="noopener" href="https://shinnai.altervista.org/papers_videos/ECFID.pdf">ECFID.pdf</a> ）</p>
 <p>整个流程类似下图，在用户空间写的进程，先通过任意地址写漏洞修改了<code>HalDispatchTable</code>，然后通过用户态的接口调用<code>NtQueryIntervalProfile</code>，从而使用了<code>xHalQuerySysttemInformation</code>这个函数指针，最后跳转到<code>shellcode</code>上</p>
-<p><img src="./image/HEVD%20win7%20x64%20arbitrary%20write/QQ%E6%88%AA%E5%9B%BE20220628204429.png" srcset="/img/loading.gif" alt="流程图"></p>
+<p><img src="/image/HEVD%20win7%20x64%20arbitrary%20write/QQ%E6%88%AA%E5%9B%BE20220628204429.png" srcset="/img/loading.gif" alt="流程图"></p>
 <p>这里说明一下<code>Nt* | ZW*</code>区别</p>
 <ol>
 <li>在<code>ntdll.dll</code>中，<code>Nt*</code>和<code>Zw*</code>应该是没区别，这个是跑在<code>ring3</code>的</li>
@@ -637,18 +637,12 @@ compiler：vs2022</code></pre>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">HEVD win7 x64 stack overflow</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/06/10/fuzzing%20like%20a%20caveman2:%20improving%20performance/">
-                        <span class="hidden-mobile">Fuzzing Like A Caveman2: Improving Performance 译</span>
+                      <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">
+                        <span class="hidden-mobile">HEVD win7 x64 stack overflow</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

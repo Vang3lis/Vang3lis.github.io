@@ -188,25 +188,26 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">HEVD win7 x64 stack overflow</a>
+        <a href="/2022/06/29/HEVD%20win7%20x64%20arbitrary%20write/">HEVD win7 x64 arbitrary write</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">
+        <a href="/2022/06/29/HEVD%20win7%20x64%20arbitrary%20write/">
           
           
             
           
-          尝试学点新东西，应该算是很久没学了
+          HEVD 中的任意地址写
 环境：
 虚拟机：Win7 SP1 x64
 物理机：Win10
 debugger：windbg preview
 compiler：vs2022
 
-环境搭建VirtualKD-Redux看了很多博客，以及尝试搭建环境，最后发现还是别人写的轮子好用
-VirtualKD-Redux
-下载之后，解压，把target64文件夹放到虚拟机中，然后在虚拟机运行vminstall
+环境搭建见前一篇栈溢出
+漏洞其中arbitrary write为0x22200b
+case 0x22200B:
+    DbgPrintEx(0x4Du, 3u, &quot;****** HEVD_IOCTL_ARBITRARY
         </a>
       </p>
 
@@ -214,8 +215,8 @@ VirtualKD-Redux
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2022-06-25 11:01" pubdate>
-              2022-06-25
+            <time datetime="2022-06-29 09:53" pubdate>
+              2022-06-29
             </time>
           </div>
         
@@ -237,26 +238,25 @@ VirtualKD-Redux
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20arbitrary%20write/">HEVD win7 x64 arbitrary write</a>
+        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">HEVD win7 x64 stack overflow</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20arbitrary%20write/">
+        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">
           
           
             
           
-          HEVD 中的任意地址写
+          尝试学点新东西，应该算是很久没学了
 环境：
 虚拟机：Win7 SP1 x64
 物理机：Win10
 debugger：windbg preview
 compiler：vs2022
 
-环境搭建见前一篇栈溢出
-漏洞其中arbitrary write为0x22200b
-case 0x22200B:
-    DbgPrintEx(0x4Du, 3u, &quot;****** HEVD_IOCTL_ARBITRARY
+环境搭建VirtualKD-Redux看了很多博客，以及尝试搭建环境，最后发现还是别人写的轮子好用
+VirtualKD-Redux
+下载之后，解压，把target64文件夹放到虚拟机中，然后在虚拟机运行vminstall
         </a>
       </p>
 
