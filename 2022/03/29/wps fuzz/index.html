@@ -183,7 +183,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.1k 字
+      2.2k 字
     </span>
   
 
@@ -193,7 +193,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      32
+      34
        分钟
     </span>
   
@@ -509,7 +509,9 @@ reader.<span class="hljs-built_in">read</span>(<span class="hljs-built_in">image
 <h3 id="AFL-INST-LIBS-AFL-QEMU-INST-RANGES"><a href="#AFL-INST-LIBS-AFL-QEMU-INST-RANGES" class="headerlink" title="AFL_INST_LIBS AFL_QEMU_INST_RANGES"></a>AFL_INST_LIBS AFL_QEMU_INST_RANGES</h3><p>不设置这两个的话，是不会给<code>dlopen</code>打开的库函数插桩的</p>
 <h3 id="fuzz-断掉继续跑"><a href="#fuzz-断掉继续跑" class="headerlink" title="fuzz 断掉继续跑"></a>fuzz 断掉继续跑</h3><p>设置输入参数为<code>-i-</code> ，就可以读入 <code>fuzz_out/default/_resume</code>中的内容，继续跑</p>
 <h3 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h3><p>顺手试了一波<code>Qt5.12.9</code>，最后跑的时候，是出现了<code>WARNING: Instrumentation output varies across runs.</code>，发现是出现了<code>ASLR</code>的情况，照理来说<code>qemu</code>应该不会出现这种情况，但是怎么解决，不太清楚</p>
-<p>另外试了一下<code>qasan</code>也无法进行插桩检测，感觉还得再整整</p>
+<h4 id="qasan"><a href="#qasan" class="headerlink" title="qasan"></a>qasan</h4><p><del>另外试了一下<code>qasan</code>也无法进行插桩检测，感觉还得再整整</del></p>
+<p><code>qasan</code>重新试了一下，没啥问题，至少也能跑起来，就是没啥效果，<code>build.py</code>之后，<code>./qasan ./elffile arg...</code>就可以了</p>
+<h4 id="e9afl"><a href="#e9afl" class="headerlink" title="e9afl"></a>e9afl</h4><p>试了一下<code>e9afl</code>，但是觉得对于这种写的<code>harness</code>并不怎么友好，最终效果非常不好，对于库函数的插桩，应该是插桩所有函数，或者沿着接口的<code>CFG</code>需要对主要部分插桩，但是我反汇编，看的时候，感觉基本没插桩什么</p>
 
             </div>
             <hr>
