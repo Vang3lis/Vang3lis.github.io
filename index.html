@@ -188,6 +188,52 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
+        <a href="/2023/02/08/RWCTF%202023%20ShellFind/">RWCTF 2023 ShellFind</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2023/02/08/RWCTF%202023%20ShellFind/">
+          
+          
+            
+          
+          环境搭建这题主要当时搭建环境用了很多时间，导致最后没时间写exp，在此记录一下环境搭建的过程
+主要环境搭建还是有三种办法：qemu-system起mips system环境；qemu-user起单个二进制文件；firmadyne起mips system环境
+qemu-system从aurel32 mips中下载对应的qemu镜像
+在起系统之前需要建立qemu系统和宿主机之间的网络桥接
+依次运行以下
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-02-08 10:21" pubdate>
+              2023-02-08
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/mips/">mips</a>
+            
+              <a href="/tags/firmware/">firmware</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
         <a href="/2022/10/22/CVE-2022-37696%20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE-2022-37696 漏洞复现</a>
       </h1>
 
@@ -595,54 +641,19 @@ http://zeifan.my/security/rce/heap/2020/09/03/wps-rce-heap.htmlhttps://www.anqua
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">QWBlogin &amp; GACTF vmpwn</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">
-          
-          
-            
-          
-          强网杯的一个虚拟机的题目，之前做过虚拟机的题目但是都没做出来，这次打比赛的时候由于有其他的事情，就做了一点就没做了，然后今天把这个题目磨出来了。
-打完 GACTF2020 之后把其中的vmpwn也添加在此
-QWBlogin该题给了一个 emulator虚拟机，运行的类似机器码的test.bin和launch.sh，之后tips的时候给了Instruction.h
-逆向main 函数基本上程序运行依
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-09-02 20:09" pubdate>
-              2020-09-02
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/re/">re</a>
-            
-              <a href="/tags/vm/">vm</a>
-            
-              <a href="/tags/pwn/">pwn</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
 
 
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+  
+  <script>
+    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
+      ele.href += '#board';
+    }
+  </script>
 
 
 
