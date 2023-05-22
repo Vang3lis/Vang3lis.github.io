@@ -91,7 +91,7 @@ __int64 __fastcall TriggerArbitraryWrite(_WRITE_WHAT_WHERE *UserWriteWhatWhere)
 
 整个流程类似下图，在用户空间写的进程，先通过任意地址写漏洞修改了`HalDispatchTable`，然后通过用户态的接口调用`NtQueryIntervalProfile`，从而使用了`xHalQuerySysttemInformation`这个函数指针，最后跳转到`shellcode`上
 
-![流程图](/image/HEVD%20win7%20x64%20arbitrary%20write/QQ%E6%88%AA%E5%9B%BE20220628204429.png)
+![流程图](/image/HEVD-win7-x64-arbitrary-write/QQ截图20220628204429.png)
 
 
 这里说明一下`Nt* | ZW*`区别
