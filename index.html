@@ -523,88 +523,6 @@ VirtualKD-Redux
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
-        <a href="/2022/06/10/fuzzing%20like%20a%20caveman2:%20improving%20performance/">Fuzzing Like A Caveman2: Improving Performance 译</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2022/06/10/fuzzing%20like%20a%20caveman2:%20improving%20performance/">
-          
-          
-            
-          
-          原文为 Fuzzing Like A Caveman 2: Improving Performance，本文章仅为个人理解的翻译和备份
-Introduction在Fuzzing like a Caveman一节中（讲述了编写fuzzer），我们将关注提升我们之前fuzzer的性能，这意味着这将不会有任何大规模的改变，我们仅关注提升我们之前那篇博客做的东西，这意味着在这篇博文结束时我们最终还是会带着
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-06-11 00:47" pubdate>
-              2022-06-11
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/fuzz/">fuzz</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        <a href="/2022/04/28/fuzzing%20like%20a%20caveman/">Fuzzing Like A Caveman 译</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2022/04/28/fuzzing%20like%20a%20caveman/">
-          
-          
-            
-          
-          原文为 Fuzzing-Like-A-Caveman，本文章仅为个人理解的翻译和备份
-Intoduction在过去的几个月里，我一直在被动地消化大量与模糊测试相关的材料，因为我主要尝试将我的Windows exploitation game从Noob-level提高到1%-Less-Noob-Level，而且我发现它相当的迷人，在这篇文章中，我将向你们展示如何创建一个非常简单变异的fuzzer，希
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-04-28 21:00" pubdate>
-              2022-04-28
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/fuzz/">fuzz</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
         <a href="/2022/03/29/wps%20fuzz/">对wps的qtcore的某一接口fuzz</a>
       </h1>
 
@@ -646,19 +564,99 @@ http://zeifan.my/security/rce/heap/2020/09/03/wps-rce-heap.htmlhttps://www.anqua
     </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2021/05/10/Plaid%20CTF%20dr/">Plaid CTF dr</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2021/05/10/Plaid%20CTF%20dr/">
+          
+          
+            
+          
+          打比赛的时候，后面一直在看dr这个题，把大概逻辑逆清楚（后来发现逆向一点用都没，感觉还不如猜呢，tcl，rust逆的很慢），一开始觉得有点类似自动机，后面发现是正则之后，巨神两个小时就秒了（tql
+拖了很久才来复现，稍微记录一下，免得之后忘记了
+程序逻辑 虽然是 rust 写的，但是程序逻辑比较简单，可以分为三部分，前面第一部分和第三部分都是定死的字符串 “3” 和 “yes”
+第二部分输入的时候
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-05-10 15:48" pubdate>
+              2021-05-10
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/re/">re</a>
+            
+              <a href="/tags/reg/">reg</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">QWBlogin &amp; GACTF vmpwn</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">
+          
+          
+            
+          
+          强网杯的一个虚拟机的题目，之前做过虚拟机的题目但是都没做出来，这次打比赛的时候由于有其他的事情，就做了一点就没做了，然后今天把这个题目磨出来了。
+打完 GACTF2020 之后把其中的vmpwn也添加在此
+QWBlogin该题给了一个 emulator虚拟机，运行的类似机器码的test.bin和launch.sh，之后tips的时候给了Instruction.h
+逆向main 函数基本上程序运行依
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-09-02 20:09" pubdate>
+              2020-09-02
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/re/">re</a>
+            
+              <a href="/tags/vm/">vm</a>
+            
+              <a href="/tags/pwn/">pwn</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
 
 
-  <nav aria-label="navigation">
-    <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="iconfont icon-arrowright"></i></a>
-    </span>
-  </nav>
-  
-  <script>
-    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
-      ele.href += '#board';
-    }
-  </script>
 
 
 
