@@ -156,6 +156,8 @@ toolsInstallManager.updateCounter = "2"
 tools.remindInstall = "FALSE"
 ```
 
+解压`rootfs`，直接用`cpio -idmv < ../rootfs`
+
 解压的时候`xz`为其自己实现的，因此要用如下指令，将压缩的全部解压
 
 ```
