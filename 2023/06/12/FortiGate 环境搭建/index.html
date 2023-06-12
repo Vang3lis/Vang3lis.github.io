@@ -316,6 +316,7 @@ vangelis@0x13:~/Desktop$ file ./flatkc
 <span class="hljs-attr">toolsInstallManager.updateCounter</span> = <span class="hljs-string">&quot;2&quot;</span>
 <span class="hljs-attr">tools.remindInstall</span> = <span class="hljs-string">&quot;FALSE&quot;</span></code></pre>
 
+<p>解压<code>rootfs</code>，直接用<code>cpio -idmv &lt; ../rootfs</code></p>
 <p>解压的时候<code>xz</code>为其自己实现的，因此要用如下指令，将压缩的全部解压</p>
 <pre><code class="hljs awk">chroot . <span class="hljs-regexp">/sbin/</span>xz -d usr.tar.xz
 chroot . <span class="hljs-regexp">/sbin/</span>ftar -xf ./usr.tar</code></pre>
