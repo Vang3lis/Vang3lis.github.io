@@ -188,6 +188,49 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
+        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">FortiGate 环境搭建</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+          
+          
+            
+          
+          FortiGate 镜像下载从官网下载FortiGate镜像，用VMware打开ovf（本文搭建时，ForiGate最新版本为7.2.4）
+会得到FortiGate-disk1.vmdk、FortiGate-disk2.vmdk等一些文件
+登录在设置虚拟机网卡时，看别人都没做什么设置，我本地的设置是网络适配器1为VMnet8(NAT)、网络适配器2为VMnet0、网络适配器3为VMnet1
+最初登
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-06-12 14:51" pubdate>
+              2023-06-12
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/FortiGate/">FortiGate</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
         <a href="/2023/03/21/SharePoint%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">SharePoint 环境搭建</a>
       </h1>
 
@@ -609,54 +652,19 @@ http://zeifan.my/security/rce/heap/2020/09/03/wps-rce-heap.htmlhttps://www.anqua
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">QWBlogin &amp; GACTF vmpwn</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">
-          
-          
-            
-          
-          强网杯的一个虚拟机的题目，之前做过虚拟机的题目但是都没做出来，这次打比赛的时候由于有其他的事情，就做了一点就没做了，然后今天把这个题目磨出来了。
-打完 GACTF2020 之后把其中的vmpwn也添加在此
-QWBlogin该题给了一个 emulator虚拟机，运行的类似机器码的test.bin和launch.sh，之后tips的时候给了Instruction.h
-逆向main 函数基本上程序运行依
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-09-02 20:09" pubdate>
-              2020-09-02
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/re/">re</a>
-            
-              <a href="/tags/vm/">vm</a>
-            
-              <a href="/tags/pwn/">pwn</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
 
 
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="iconfont icon-arrowright"></i></a>
+    </span>
+  </nav>
+  
+  <script>
+    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
+      ele.href += '#board';
+    }
+  </script>
 
 
 

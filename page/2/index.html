@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="Vang3lis">
   <meta name="keywords" content="">
-  <title>归档 - Vang3lis&#39;s Blog</title>
+  <title>Vang3lis&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 
@@ -43,7 +43,7 @@
 
 
 <body>
-  <header style="height: 60vh;">
+  <header style="height: 100vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -162,6 +162,10 @@
           </div>
 
           
+            <div class="scroll-down-bar">
+              <i class="iconfont icon-arrowdown"></i>
+            </div>
+          
         </div>
       </div>
     </div>
@@ -171,27 +175,74 @@
     
       <div class="container nopadding-md">
         <div class="py-5" id="board"
-          >
+          style=margin-top:0>
           
           <div class="container">
             <div class="row">
               <div class="col-12 col-md-10 m-auto">
                 
 
-<div class="list-group">
-  <p class="h4">共计 11 篇文章</p>
-  <hr>
-  
+
+  <div class="row mx-auto index-card">
     
-      
-      <p class="h5">2023</p>
     
-    <a href="/2023/03/21/SharePoint%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">SharePoint 环境搭建</span>
-      <time style="float: right;">03-21</time>
-    </a>
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">QWBlogin &amp; GACTF vmpwn</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/09/02/qwblogin%20&%20GACTF%20vmpwn/">
+          
+          
+            
+          
+          强网杯的一个虚拟机的题目，之前做过虚拟机的题目但是都没做出来，这次打比赛的时候由于有其他的事情，就做了一点就没做了，然后今天把这个题目磨出来了。
+打完 GACTF2020 之后把其中的vmpwn也添加在此
+QWBlogin该题给了一个 emulator虚拟机，运行的类似机器码的test.bin和launch.sh，之后tips的时候给了Instruction.h
+逆向main 函数基本上程序运行依
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-09-02 20:09" pubdate>
+              2020-09-02
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/re/">re</a>
+            
+              <a href="/tags/vm/">vm</a>
+            
+              <a href="/tags/pwn/">pwn</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    </span>
+  </nav>
   
-</div>
+  <script>
+    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
+      ele.href += '#board';
+    }
+  </script>
 
 
 
@@ -284,7 +335,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "归档&nbsp;",
+        "宁静致远&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,
