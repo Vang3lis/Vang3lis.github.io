@@ -401,7 +401,7 @@ links:
   items:  # intro 与 image 可省略
     - {
       title: 'M4x',
-      link: 'https://m4x.fun',
+      link: 'https://writeup.md',
     }
 
     
