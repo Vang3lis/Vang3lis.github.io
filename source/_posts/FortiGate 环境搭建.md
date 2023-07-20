@@ -238,6 +238,60 @@ killall -9 snmpd && /bin/busybox telnetd -l /bin/sh -b 0.0.0.0 -p 162
 
 如果逆向到后面，可以找到`/bin/init`中的`sshd`的`Service`注册的位置，把注册的位置改成`while(1)`，同样也是可以`kill sshd`，占用`22`端口开启`telnetd`服务的
 
+## 配置ip
+
+[官方文档](https://help.fortinet.com/fdb/5-0-0/html/source/tasks/t_network_configuration_cli.html)
+
+```
+config system interface
+  edit <port>
+  set ip <ip_address> <netmask>
+  set allowaccess (http https ping ssh telnet)
+end
+```
+
+## python3 tlsv1 报错
+
+用`python3`写`SSL`连接时报错如下
+
+```
+  File "/usr/lib/python3.8/ssl.py", line 500, in wrap_socket
+    return self.sslsocket_class._create(
+  File "/usr/lib/python3.8/ssl.py", line 1040, in _create
+    self.do_handshake()
+  File "/usr/lib/python3.8/ssl.py", line 1309, in do_handshake
+    self._sslobj.do_handshake()
+ssl.SSLError: [SSL: TLSV1_ALERT_PROTOCOL_VERSION] tlsv1 alert protocol version (_ssl.c:1131)
+```
+
+是因为`ubuntu 20.04`最低的`tls`版本设置高于`tlsv1`，因此需要修改`/etc/ssl/openssl.cnf`的配置
+
+需要在文件第一行加上`openssl_conf = default_conf`
+
+文件尾再加上
+
+```
+[default_conf]
+ssl_conf = ssl_sect
+
+[ssl_sect]
+system_default = system_default_sect
+
+[system_default_sect]
+MinProtocol = TLSv1
+CipherString = DEFAULT@SECLEVEL=1
+```
+
+如果想要`requests`不报`warning`，需要加上如下代码在`python3`脚本中
+
+```
+from urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+```
+
+这部分的报错解决很久，最后是在[ubuntu 20.04启用TLSv1](https://blog.csdn.net/weixin_44338780/article/details/117912301)找到的
+
+
 ## 引用
 
 > https://forum.butian.net/share/2166
