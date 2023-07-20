@@ -183,7 +183,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.6k 字
+      1.8k 字
     </span>
   
 
@@ -193,7 +193,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      23
+      26
        分钟
     </span>
   
@@ -377,6 +377,40 @@ Loading rootfs.gz... ok</code></pre>
 /bin/gdbserver --attach <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:<span class="hljs-number">161</span> sslvpndPid</code></pre>
 
 <p>如果逆向到后面，可以找到<code>/bin/init</code>中的<code>sshd</code>的<code>Service</code>注册的位置，把注册的位置改成<code>while(1)</code>，同样也是可以<code>kill sshd</code>，占用<code>22</code>端口开启<code>telnetd</code>服务的</p>
+<h2 id="配置ip"><a href="#配置ip" class="headerlink" title="配置ip"></a>配置ip</h2><p><a target="_blank" rel="noopener" href="https://help.fortinet.com/fdb/5-0-0/html/source/tasks/t_network_configuration_cli.html">官方文档</a></p>
+<pre><code class="hljs routeros">config<span class="hljs-built_in"> system </span>interface
+  <span class="hljs-builtin-name">edit</span> &lt;port&gt;
+  <span class="hljs-builtin-name">set</span><span class="hljs-built_in"> ip </span>&lt;ip_address&gt; &lt;netmask&gt;
+  <span class="hljs-builtin-name">set</span> allowaccess (http https<span class="hljs-built_in"> ping </span>ssh telnet)
+end</code></pre>
+
+<h2 id="python3-tlsv1-报错"><a href="#python3-tlsv1-报错" class="headerlink" title="python3 tlsv1 报错"></a>python3 tlsv1 报错</h2><p>用<code>python3</code>写<code>SSL</code>连接时报错如下</p>
+<pre><code class="hljs stata">  <span class="hljs-keyword">File</span> <span class="hljs-string">&quot;/usr/lib/python3.8/ssl.py&quot;</span>, <span class="hljs-keyword">line</span> 500, <span class="hljs-keyword">in</span> wrap_socket
+    <span class="hljs-keyword">return</span> self.sslsocket_class._create(
+  <span class="hljs-keyword">File</span> <span class="hljs-string">&quot;/usr/lib/python3.8/ssl.py&quot;</span>, <span class="hljs-keyword">line</span> 1040, <span class="hljs-keyword">in</span> _create
+    self.do_handshake()
+  <span class="hljs-keyword">File</span> <span class="hljs-string">&quot;/usr/lib/python3.8/ssl.py&quot;</span>, <span class="hljs-keyword">line</span> 1309, <span class="hljs-keyword">in</span> do_handshake
+    self._sslobj.do_handshake()
+ssl.SSLError: [SSL: TLSV1_ALERT_PROTOCOL_VERSION] tlsv1 alert protocol <span class="hljs-keyword">version</span> (_ssl.c:1131)</code></pre>
+
+<p>是因为<code>ubuntu 20.04</code>最低的<code>tls</code>版本设置高于<code>tlsv1</code>，因此需要修改<code>/etc/ssl/openssl.cnf</code>的配置</p>
+<p>需要在文件第一行加上<code>openssl_conf = default_conf</code></p>
+<p>文件尾再加上</p>
+<pre><code class="hljs ini"><span class="hljs-section">[default_conf]</span>
+<span class="hljs-attr">ssl_conf</span> = ssl_sect
+
+<span class="hljs-section">[ssl_sect]</span>
+<span class="hljs-attr">system_default</span> = system_default_sect
+
+<span class="hljs-section">[system_default_sect]</span>
+<span class="hljs-attr">MinProtocol</span> = TLSv1
+<span class="hljs-attr">CipherString</span> = DEFAULT@SECLEVEL=<span class="hljs-number">1</span></code></pre>
+
+<p>如果想要<code>requests</code>不报<code>warning</code>，需要加上如下代码在<code>python3</code>脚本中</p>
+<pre><code class="hljs routeros"><span class="hljs-keyword">from</span> urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(<span class="hljs-attribute">category</span>=InsecureRequestWarning)</code></pre>
+
+<p>这部分的报错解决很久，最后是在<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44338780/article/details/117912301">ubuntu 20.04启用TLSv1</a>找到的</p>
 <h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote>
 <p><a target="_blank" rel="noopener" href="https://forum.butian.net/share/2166">https://forum.butian.net/share/2166</a><br><a target="_blank" rel="noopener" href="https://wzt.ac.cn/2022/12/15/CVE-2022-42475/">https://wzt.ac.cn/2022/12/15/CVE-2022-42475/</a></p>
 </blockquote>
