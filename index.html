@@ -188,6 +188,51 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
+        <a href="/2023/07/20/ASA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">ASA 环境搭建</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2023/07/20/ASA%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+          
+          
+            
+          
+          ASA cli通过以下指令设置ip，开启icmp和http
+ciscoasa&gt; en
+ciscoasa# configure t
+ciscoasa(config)# interface GigabitEthernet0/0
+ciscoasa(config-if)# nameif outside
+ciscoasa(config-if)# ip address 192.168.152.233 2
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-07-20 11:02" pubdate>
+              2023-07-20
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/ASA/">ASA</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
         <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">FortiGate 环境搭建</a>
       </h1>
 
@@ -600,51 +645,6 @@ http://zeifan.my/security/rce/heap/2020/09/03/wps-rce-heap.htmlhttps://www.anqua
               <a href="/tags/afl/">afl++</a>
             
               <a href="/tags/qemu-mode/">qemu_mode</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        <a href="/2021/05/10/Plaid%20CTF%20dr/">Plaid CTF dr</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/05/10/Plaid%20CTF%20dr/">
-          
-          
-            
-          
-          打比赛的时候，后面一直在看dr这个题，把大概逻辑逆清楚（后来发现逆向一点用都没，感觉还不如猜呢，tcl，rust逆的很慢），一开始觉得有点类似自动机，后面发现是正则之后，巨神两个小时就秒了（tql
-拖了很久才来复现，稍微记录一下，免得之后忘记了
-程序逻辑 虽然是 rust 写的，但是程序逻辑比较简单，可以分为三部分，前面第一部分和第三部分都是定死的字符串 “3” 和 “yes”
-第二部分输入的时候
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-05-10 15:48" pubdate>
-              2021-05-10
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/re/">re</a>
-            
-              <a href="/tags/reg/">reg</a>
             
           </div>
         
