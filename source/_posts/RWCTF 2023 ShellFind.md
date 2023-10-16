@@ -115,6 +115,9 @@ bound to 192.168.152.132 -- renewal in 853 seconds.
 
 通过`ifconfig`看`ip`
 
+或者通过如下链接的方法创建网桥
+> http://wiki.yanick.site/wiki/os/qemu/
+
 通过如下命令，起`qemu system`
 
 ```shell
