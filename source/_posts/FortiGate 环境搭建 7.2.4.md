@@ -1,5 +1,5 @@
 ---
-title: 'FortiGate 环境搭建'
+title: 'FortiGate 环境搭建 7.2.4'
 date: 2023-06-12 14:51:14
 category: setup
 tags: [FortiGate]
@@ -93,23 +93,23 @@ vangelis@0x13:~/Desktop$ file ./flatkc
 
 P.S 调试时看到的`rootfs.gz`应该是在`kernel_init_freeable`中调用`unpack_rootfs`
 
-![flatkc-kernel-init](/img/FortiGate-Setup/flatkc-kernel-init.png)
+![flatkc-kernel-init](/img/FortiGate-Setup-7.2.4/flatkc-kernel-init.png)
 
 ### /sbin/init
 
 主要`verify_filesystem`中验证所有的文件系统，后面解压`bin`、`migadmin`、`node-scripts`、`usr`，再`execve("/bin/init")`
 
-![sbin-init](/img/FortiGate-Setup/sbin-init.png)
+![sbin-init](/img/FortiGate-Setup-7.2.4/sbin-init.png)
 
 在`verify-filesystem`中`sub_401700`遍历所有的文件系统，然后算`hash`，最后跟`.fgtsum`的结果比较
 
-![verify-filesystem](/img/FortiGate-Setup/verify-filesystem.png)
+![verify-filesystem](/img/FortiGate-Setup-7.2.4/verify-filesystem.png)
 
 ### /bin/init
 
 `/bin/init`是`FortiGate`中核心功能，几乎所有的后台运行的程序均链接到`/bin/init`，在`main`中存在一些检测
 
-![bin-init-main](/img/FortiGate-Setup/bin-init-main.png)
+![bin-init-main](/img/FortiGate-Setup-7.2.4/bin-init-main.png)
 
 在`verifyKernelAndRootfs_450510()`的地方会验证`flatkc`和`rootfs`文件目录的结果
 
