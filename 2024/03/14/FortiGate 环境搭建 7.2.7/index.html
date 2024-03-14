@@ -183,7 +183,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1k 字
+      1.1k 字
     </span>
   
 
@@ -335,10 +335,12 @@ end
 
 c</code></pre>
 
+<h2 id="最终效果"><a href="#最终效果" class="headerlink" title="最终效果"></a>最终效果</h2><p><img src="/img/FortiGate-Setup-7.2.7/7.2.7-shell.png" srcset="/img/loading.gif" alt="7.2.7-shell"></p>
 <h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>patch init 直接用 radare2 ，非常的方便</p>
-<p>vmware debugstub 断点只能下四个，因为是下的硬件断点，这个折磨了我好久，最后我发现只能下几个断点之后，f1ys0ar师兄才告诉我这个（想死的心都有了</p>
+<p><code>FortiGate</code>中一些重启的包装函数为<code>flatkc</code>中的<code>kernel_restart</code>和<code>init</code>中的<code>do_halt</code>、<code>reboot(xxxx)</code></p>
+<p>vmware debugstub 断点只能下四个，因为是下的硬件断点，这个折磨了我好久，最后我发现只能下几个断点之后，f1ys0ar师兄才告诉我因为硬件断点（想死的心都有了</p>
 <p>一些检测是<code>plusls</code>当初帮我制作<code>7.2.6</code>的<code>shell</code>时候告诉我的，感谢<code>plusls</code>大佬</p>
-<p><code>&gt;= 7.4.0</code>是用的<code>chacha20</code>对于<code>rootfs.gz</code>进行加密的，当时发现解密的密钥和我直接用<code>flatkc</code>的不一样，最后发现是没用<code>.encode(&quot;raw_unicode_escape&quot;)</code>的锅，直接导致转换错误</p>
+<p><code>&gt;= 7.4.0</code>是用的<code>chacha20</code>对于<code>rootfs.gz</code>进行加密的，当时发现调试时解密的密钥和我直接用<code>flatkc</code>提取的不一样，最后发现是没用<code>.encode(&quot;raw_unicode_escape&quot;)</code>的锅，直接导致转换错误</p>
 <p>最后感谢<code>swing</code>和<code>m4x</code>大哥听我一路踩坑</p>
 <h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote>
 <p><a target="_blank" rel="noopener" href="https://www.optistream.io/blogs/tech/fortigate-firmware-analysis">https://www.optistream.io/blogs/tech/fortigate-firmware-analysis</a><br><a target="_blank" rel="noopener" href="https://paper.seebug.org/3129/">https://paper.seebug.org/3129/</a></p>
