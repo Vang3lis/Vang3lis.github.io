@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="Vang3lis">
   <meta name="keywords" content="">
-  <title>FortiGate 环境搭建 - Vang3lis&#39;s Blog</title>
+  <title>FortiGate 环境搭建 7.2.4 - Vang3lis&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 
@@ -223,7 +223,7 @@
         <div class="py-5" id="board">
           <article class="post-content mx-auto" id="post">
             <!-- SEO header -->
-            <h1 style="display: none">FortiGate 环境搭建</h1>
+            <h1 style="display: none">FortiGate 环境搭建 7.2.4</h1>
             
             <div class="markdown-body" id="post-body">
               <h2 id="FortiGate-镜像下载"><a href="#FortiGate-镜像下载" class="headerlink" title="FortiGate 镜像下载"></a>FortiGate 镜像下载</h2><p>从官网下载<code>FortiGate</code>镜像，用<code>VMware</code>打开<code>ovf</code>（本文搭建时，<code>ForiGate</code>最新版本为<code>7.2.4</code>）</p>
@@ -279,13 +279,13 @@ vangelis@0x13:~/Desktop$ file ./flatkc
 
 <h3 id="flatkc"><a href="#flatkc" class="headerlink" title="flatkc"></a>flatkc</h3><p>使用<a target="_blank" rel="noopener" href="https://github.com/marin-m/vmlinux-to-elf">vmlinux-to-elf</a>将<code>bzImage</code>转成<code>elf</code>，其主要在<code>fgt_verify</code>中检查<code>/sbin/init</code>和<code>/sbin/init.chk</code>是否匹配，只要修改<code>fgt_verify()</code>的返回值就可以绕过检测，走到<code>do_execve(&quot;/sbin/init&quot;)</code></p>
 <p>P.S 调试时看到的<code>rootfs.gz</code>应该是在<code>kernel_init_freeable</code>中调用<code>unpack_rootfs</code></p>
-<p><img src="/img/FortiGate-Setup/flatkc-kernel-init.png" srcset="/img/loading.gif" alt="flatkc-kernel-init"></p>
+<p><img src="/img/FortiGate-Setup-7.2.4/flatkc-kernel-init.png" srcset="/img/loading.gif" alt="flatkc-kernel-init"></p>
 <h3 id="sbin-init"><a href="#sbin-init" class="headerlink" title="/sbin/init"></a>/sbin/init</h3><p>主要<code>verify_filesystem</code>中验证所有的文件系统，后面解压<code>bin</code>、<code>migadmin</code>、<code>node-scripts</code>、<code>usr</code>，再<code>execve(&quot;/bin/init&quot;)</code></p>
-<p><img src="/img/FortiGate-Setup/sbin-init.png" srcset="/img/loading.gif" alt="sbin-init"></p>
+<p><img src="/img/FortiGate-Setup-7.2.4/sbin-init.png" srcset="/img/loading.gif" alt="sbin-init"></p>
 <p>在<code>verify-filesystem</code>中<code>sub_401700</code>遍历所有的文件系统，然后算<code>hash</code>，最后跟<code>.fgtsum</code>的结果比较</p>
-<p><img src="/img/FortiGate-Setup/verify-filesystem.png" srcset="/img/loading.gif" alt="verify-filesystem"></p>
+<p><img src="/img/FortiGate-Setup-7.2.4/verify-filesystem.png" srcset="/img/loading.gif" alt="verify-filesystem"></p>
 <h3 id="bin-init"><a href="#bin-init" class="headerlink" title="/bin/init"></a>/bin/init</h3><p><code>/bin/init</code>是<code>FortiGate</code>中核心功能，几乎所有的后台运行的程序均链接到<code>/bin/init</code>，在<code>main</code>中存在一些检测</p>
-<p><img src="/img/FortiGate-Setup/bin-init-main.png" srcset="/img/loading.gif" alt="bin-init-main"></p>
+<p><img src="/img/FortiGate-Setup-7.2.4/bin-init-main.png" srcset="/img/loading.gif" alt="bin-init-main"></p>
 <p>在<code>verifyKernelAndRootfs_450510()</code>的地方会验证<code>flatkc</code>和<code>rootfs</code>文件目录的结果</p>
 <h2 id="绕过"><a href="#绕过" class="headerlink" title="绕过"></a>绕过</h2><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>最开始想的是，直接利用重打包<code>rootfs.gz</code>（注：这里<code>/dev/sda1</code>比较小，需要放到外面再重打包），调试虚拟机内核时修改<code>flatkc</code>中的指向<code>/sbin/init</code>的字符串为<code>/sh</code>，从而直接执行<code>busybox</code>的<code>sh</code>，结果不成功，可能是<code>/bin/init</code>中对于一些设备进行了初始化</p>
 <p>于是还是得按照别人博客中的思路，重打包<code>rootfs.gz</code>，自己实现<code>/sbin/init</code>干的事情即解压文件，并把<code>/bin/busybox</code>丢进去；在调试内核的时候，修改<code>flatkc</code>的校验，使其不<code>panic</code>且修改其指向的字符串为<code>/bin/init</code>；执行<code>/bin/init</code>时修改验证的返回值，使其正常过检测</p>
@@ -594,7 +594,7 @@ requests.packages.urllib3.disable_warnings(<span class="hljs-attribute">category
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "FortiGate 环境搭建&nbsp;",
+        "FortiGate 环境搭建 7.2.4&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

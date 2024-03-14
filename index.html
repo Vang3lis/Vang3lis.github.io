@@ -188,6 +188,55 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
+        <a href="/2024/03/14/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.7/">FortiGate 环境搭建 7.2.7</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2024/03/14/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.7/">
+          
+          
+            
+          
+          前置部分内容在FortiGate 环境搭建 7.2.4中，本文将不再赘述。本文仍然用的重打包的方式获取shell
+FortiGate 镜像下载本文搭建为当前最新版7.2.7的FortiGate
+登录设置IP
+config system interface
+edit port1
+set mode static
+set ip 192.168.x.x/255.255.255.0
+end
+
+然后通过gui
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-03-14 20:49" pubdate>
+              2024-03-14
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/FortiGate/">FortiGate</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
         <a href="/2023/08/29/BGP%E5%8D%8F%E8%AE%AE%E6%A0%BC%E5%BC%8F%E8%AE%B0%E5%BD%95/">BGP协议格式记录</a>
       </h1>
 
@@ -277,11 +326,11 @@ ciscoasa(config-if)# ip address 192.168.152.233 2
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
-        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">FortiGate 环境搭建</a>
+        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.4/">FortiGate 环境搭建 7.2.4</a>
       </h1>
 
       <p class="index-excerpt">
-        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+        <a href="/2023/06/12/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.4/">
           
           
             
@@ -585,55 +634,6 @@ case 0x22200B:
             <i class="iconfont icon-date"></i>
             <time datetime="2022-06-29 09:53" pubdate>
               2022-06-29
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/windows-kernel/">windows kernel</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">HEVD win7 x64 stack overflow</a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2022/06/25/HEVD%20win7%20x64%20stack%20overflow/">
-          
-          
-            
-          
-          尝试学点新东西，应该算是很久没学了
-环境：
-虚拟机：Win7 SP1 x64
-物理机：Win10
-debugger：windbg preview
-compiler：vs2022
-
-环境搭建VirtualKD-Redux看了很多博客，以及尝试搭建环境，最后发现还是别人写的轮子好用
-VirtualKD-Redux
-下载之后，解压，把target64文件夹放到虚拟机中，然后在虚拟机运行vminstall
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-06-25 11:01" pubdate>
-              2022-06-25
             </time>
           </div>
         
