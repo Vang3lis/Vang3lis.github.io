@@ -162,15 +162,21 @@ end
 c
 ```
 
+## 最终效果
+
+![7.2.7-shell](/img/FortiGate-Setup-7.2.7/7.2.7-shell.png)
+
 ## 其他
 
 patch init 直接用 radare2 ，非常的方便
 
-vmware debugstub 断点只能下四个，因为是下的硬件断点，这个折磨了我好久，最后我发现只能下几个断点之后，f1ys0ar师兄才告诉我这个（想死的心都有了
+`FortiGate`中一些重启的包装函数为`flatkc`中的`kernel_restart`和`init`中的`do_halt`、`reboot(xxxx)`
+
+vmware debugstub 断点只能下四个，因为是下的硬件断点，这个折磨了我好久，最后我发现只能下几个断点之后，f1ys0ar师兄才告诉我因为硬件断点（想死的心都有了
 
 一些检测是`plusls`当初帮我制作`7.2.6`的`shell`时候告诉我的，感谢`plusls`大佬
 
-`>= 7.4.0`是用的`chacha20`对于`rootfs.gz`进行加密的，当时发现解密的密钥和我直接用`flatkc`的不一样，最后发现是没用`.encode("raw_unicode_escape")`的锅，直接导致转换错误
+`>= 7.4.0`是用的`chacha20`对于`rootfs.gz`进行加密的，当时发现调试时解密的密钥和我直接用`flatkc`提取的不一样，最后发现是没用`.encode("raw_unicode_escape")`的锅，直接导致转换错误
 
 最后感谢`swing`和`m4x`大哥听我一路踩坑
 
