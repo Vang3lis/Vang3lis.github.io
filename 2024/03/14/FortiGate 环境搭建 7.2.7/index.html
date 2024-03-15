@@ -193,7 +193,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      14
+      15
        分钟
     </span>
   
@@ -336,6 +336,8 @@ end
 c</code></pre>
 
 <h2 id="最终效果"><a href="#最终效果" class="headerlink" title="最终效果"></a>最终效果</h2><p><img src="/img/FortiGate-Setup-7.2.7/7.2.7-shell.png" srcset="/img/loading.gif" alt="7.2.7-shell"></p>
+<h2 id="gdbserver"><a href="#gdbserver" class="headerlink" title="gdbserver"></a>gdbserver</h2><p>调整telnet到162端口，gdbserver起在161端口，可以开启<code>snmpd</code>的<code>SNMP Agent</code>以及<code>v2c</code>，对于<code>interface port1</code>也开启<code>SNMP</code>，然后<code>killall -9 snmpd &amp;&amp; /bin/busybox telnetd -l /bin/sh -b 0.0.0.0 -p 162</code>，再在<code>web</code>中关闭<code>snmpd</code>，就可以连接<code>telnet ip 162</code>了，这样<code>gdbserver</code>就可以是用161端口</p>
+<p>再通过<code>killall -9 sshd</code>，重启<code>sshd</code></p>
 <h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>patch init 直接用 radare2 ，非常的方便</p>
 <p><code>FortiGate</code>中一些重启的包装函数为<code>flatkc</code>中的<code>kernel_restart</code>和<code>init</code>中的<code>do_halt</code>、<code>reboot(xxxx)</code></p>
 <p>vmware debugstub 断点只能下四个，因为是下的硬件断点，这个折磨了我好久，最后我发现只能下几个断点之后，f1ys0ar师兄才告诉我因为硬件断点（想死的心都有了</p>
