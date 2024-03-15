@@ -166,6 +166,12 @@ c
 
 ![7.2.7-shell](/img/FortiGate-Setup-7.2.7/7.2.7-shell.png)
 
+## gdbserver
+
+调整telnet到162端口，gdbserver起在161端口，可以开启`snmpd`的`SNMP Agent`以及`v2c`，对于`interface port1`也开启`SNMP`，然后`killall -9 snmpd && /bin/busybox telnetd -l /bin/sh -b 0.0.0.0 -p 162`，再在`web`中关闭`snmpd`，就可以连接`telnet ip 162`了，这样`gdbserver`就可以是用161端口
+
+再通过`killall -9 sshd`，重启`sshd`
+
 ## 其他
 
 patch init 直接用 radare2 ，非常的方便
