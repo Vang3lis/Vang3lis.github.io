@@ -28,7 +28,15 @@ ciscoasa(config)# access-group permit-ping in interface outside
 ciscoasa(config)# icmp permit any outside
 ciscoasa(config)# write mem
 
+ciscoasa(config)# username Cisco password examplepassword1 privilege 15
+ciscoasa(config)# write mem
+```
 
+配置好之后，用 ASDM 连接（注：ASDM 需要用 Java8 才行）
+
+后续可以参照这篇配置 [webvpn](https://www.cisco.com/c/zh_cn/support/docs/security-vpn/webvpn-ssl-vpn/119417-config-asa-00.html)
+
+```
 ciscoasa# configure t
 ciscoasa(config)# http server enable
 ciscoasa(config)# http 192.168.152.0 255.255.255.0 outside
