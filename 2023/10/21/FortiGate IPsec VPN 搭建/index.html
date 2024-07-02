@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Vang3lis">
+  <meta name="keywords" content="">
+  <title>FortiGate IPsec VPN 搭建 - Vang3lis&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_6peoq002giu.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>0x13</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+  <div class="mt-3 post-meta">
+    <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+    <time datetime="2023-10-21 15:59" pubdate>
+      2023年10月21日 下午
+    </time>
+  </div>
+
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.2k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      14
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">FortiGate IPsec VPN 搭建</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <p>[toc]</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>该博客主要记录，在<code>FortiGate上</code>搭建<code>IPsec VPN</code>的过程，主要最终实现了对于<code>site-to-site</code>（<code>FortiGate-to-FortiGate</code>）和<code>host-to-site</code>（<code>Windows10-to-FortiGate</code>）的搭建</p>
+<h2 id="整体的网络拓扑结构"><a href="#整体的网络拓扑结构" class="headerlink" title="整体的网络拓扑结构"></a>整体的网络拓扑结构</h2><p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/network-topology-diagram.png" srcset="/img/loading.gif" alt="网络拓扑"></p>
+<p><code>FortiGate 1</code>：网络适配器1设置为<code>NAT</code>（<code>192.168.152.0/24</code>），网络适配器2设置为<code>VMnet1</code>（<code>192.168.159.0/24</code>）<br><code>FortiGate 2</code>：网络适配器1设置为<code>NAT</code>（<code>192.168.152.0/24</code>），网络适配器2设置为<code>VMnet3</code>（<code>192.168.200.0/24</code>）<br><code>pc1</code>：网络适配器设置为<code>VMnet1</code>（<code>192.168.159.0/24</code>）<br><code>pc2</code>：网络适配器设置为<code>VMnet3</code>（<code>192.168.200.0/24</code>）</p>
+<p>在配置<code>host-to-site</code>时，会在<code>NAT</code>上再连接一个<code>windows10</code>的机器</p>
+<p><strong>注：</strong> <code>pc1</code>的网关需要设置为<code>192.168.159.3</code>，<code>pc2</code>的网络需要设置为<code>192.168.200.3</code>，否则<code>pc1</code>会通过<code>192.168.159.2</code>直接<code>ping</code>到<code>pc2</code></p>
+<h2 id="FortiGate1的配置"><a href="#FortiGate1的配置" class="headerlink" title="FortiGate1的配置"></a>FortiGate1的配置</h2><h3 id="配置-port1-和-port2"><a href="#配置-port1-和-port2" class="headerlink" title="配置 port1 和 port2"></a>配置 port1 和 port2</h3><p>首先对于<code>port1</code>和<code>port2</code>有如下设置</p>
+<p><code>port1</code>不用设置<code>DHCP Server</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Interface-port1.png" srcset="/img/loading.gif" alt="port1"></p>
+<p><code>port2</code>设置<code>DHCP Server</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Interface-port2.png" srcset="/img/loading.gif" alt="port2"></p>
+<h3 id="配置-NAT-和-Firewall"><a href="#配置-NAT-和-Firewall" class="headerlink" title="配置 NAT 和 Firewall"></a>配置 NAT 和 Firewall</h3><p>接下来我们需要使得内网的流量能走出去，因此设置<code>NAT</code>和流量的转发</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-NAT.png" srcset="/img/loading.gif" alt="NAT"></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Firewall-Policy.png" srcset="/img/loading.gif" alt="Firewall-Policy"></p>
+<p><strong>注：</strong> 这里的<code>NAT</code>有一些并不在<code>Central SNAT</code>的地方开启，而在<code>Firewall Policy</code>中开启</p>
+<h3 id="配置-IPSec-VPN-site-to-site（FortiGate1-to-FortiGate2）"><a href="#配置-IPSec-VPN-site-to-site（FortiGate1-to-FortiGate2）" class="headerlink" title="配置 IPSec VPN site-to-site（FortiGate1-to-FortiGate2）"></a>配置 IPSec VPN site-to-site（FortiGate1-to-FortiGate2）</h3><p>在<code>IPSec Tunnels</code>中选择<code>Site-To-Site</code>进行配置</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-IPSec-Wizard-VPN-Setup.png" srcset="/img/loading.gif" alt="FortiGate1-IPSec-Wizard-VPN-Setup"></p>
+<p>我们设置<code>FortiGate2</code>的端口地址以及预共享密钥</p>
+<p><strong>注：</strong> 这里显示冲突，因为我之前已经配好了，所以才会显示<code>Duplicate entry found.</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-IPSec-Wizard-Authentication.png" srcset="/img/loading.gif" alt="FortiGate1-IPSec-Wizard-Authentication"></p>
+<p>设置本地的子网和远程的子网</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-IPSec-Wizard-Policy-Routing.png" srcset="/img/loading.gif" alt="FortiGate1-IPSec-Wizard-Policy-Routing"></p>
+<p>最后会如下显示，如果<code>Create</code>之后，成功了，说明配置<strong>暂时（理论上）</strong>没问题</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-IPSec-Wizard-Review.png" srcset="/img/loading.gif" alt="FortiGate1-IPSec-Wizard-Review"></p>
+<p>这个时候没有连接的话，会显示<code>Inactive</code>，而如果已经连接的话会显示<code>up</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-IPSec-Tunnels.png" srcset="/img/loading.gif" alt="IPSec-Tunnels"></p>
+<p>我们接下来将其转换成<code>Custom</code>来看看其具体配置是什么，即如果直接用<code>custom</code>配置的话，应该如何做</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Edit.png" srcset="/img/loading.gif" alt="FortiGate1-Edit"></p>
+<p>可以看到远程网关地址，对应端口，认证方法，<code>ike</code>版本，模式，阶段一协商用的算法，<code>DH Groups</code>组数，阶段二的配置</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-FortiGate2-Custom.png" srcset="/img/loading.gif" alt="FortiGate1-FortiGate2-Custom"></p>
+<p>在<code>FortiGate2</code>也如法炮制的配置一遍即可</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate2-FortiGate1-Custom.png" srcset="/img/loading.gif" alt="FortiGate2-FortiGate1-Custom"></p>
+<p><strong>注：</strong> 对于<code>site-to-site</code>中的<code>Inactive</code>图标的地方，可以<strong>单击</strong>点进去，使用<code>Bring up</code>将其启动</p>
+<h3 id="配置-IPSec-VPN-host-to-site（win10-to-FortiGate1）"><a href="#配置-IPSec-VPN-host-to-site（win10-to-FortiGate1）" class="headerlink" title="配置 IPSec VPN host-to-site（win10-to-FortiGate1）"></a>配置 IPSec VPN host-to-site（win10-to-FortiGate1）</h3><p>在<code>IPSec Tunnels</code>中选择<code>Remote Access</code>进行配置</p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Win10-VPN-Setup.png" srcset="/img/loading.gif" alt="FortiGate1-Win10-VPN-Setup"></p>
+<p>这里需要提前设置一个<code>L2TP_Group</code>，<code>Group</code>类型是防火墙，设置一个用户<code>win1</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Win10-VPN-Authentication.png" srcset="/img/loading.gif" alt="FortiGate1-Win10-VPN-Authentication"></p>
+<p><strong>注：</strong> 这里的<code>Client Address Range</code>是<code>IPSec VPN</code>连接过来之后，这个<code>FortiGate1</code>会给这个用户分配的地址范围是什么，这里我原来设置为子网<code>192.168.159.0/24</code>不成功，所以才如此设置，当然也可以自行再次尝试是否可以为<code>192.168.159.0/24</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Win10-VPN-Policy-Routing.png" srcset="/img/loading.gif" alt="FortiGate1-Win10-VPN-Policy-Routing"></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Win10-VPN-Review.png" srcset="/img/loading.gif" alt="FortiGate1-Win10-VPN-Review"></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/FortiGate1-Win10-VPN-Custom.png" srcset="/img/loading.gif" alt="FortiGate1-Win10-VPN-Custom"></p>
+<p>最终连接的效果会让连接者有一个<code>173.31.1.0/24</code>的<code>IP</code></p>
+<p><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-IP.png" srcset="/img/loading.gif" alt="Win10-IP"></p>
+<h2 id="PC1-PC2-配置"><a href="#PC1-PC2-配置" class="headerlink" title="PC1 PC2 配置"></a>PC1 PC2 配置</h2><p>基本不需要配置，因为<code>FortiGate1</code>和<code>FortiGate2</code>配置好了，但是要注意中间发包是否是<code>ESP</code>的</p>
+<p>最主要的配置，需要将<code>PC1</code>的网关设置为<code>192.168.159.3</code>，<code>PC2</code>的网关设置为<code>192.168.200.3</code></p>
+<p>否则<code>PC1</code>要么直接不需要隧道就可以到<code>PC2</code>，要么就是<code>PC1</code>不能通过隧道走到<code>PC2</code></p>
+<pre><code class="hljs routeros">sudo<span class="hljs-built_in"> route </span><span class="hljs-builtin-name">add</span><span class="hljs-built_in"> default </span>gw 192.168.159.3
+
+sudo<span class="hljs-built_in"> route </span><span class="hljs-builtin-name">add</span><span class="hljs-built_in"> default </span>gw 192.168.200.3</code></pre>
+
+<p>内部如果需要真的上网，则需要将<code>fortigate1</code>和<code>fortigate2</code>配置一个静态的路由，从<code>0.0.0.0</code>均走到<code>192.168.152.2</code>（如果不上网，可以直接设置<code>disable</code>），然后再配置<code>pc1</code>和<code>pc2</code>的<code>DNS Server</code>就好了</p>
+<h2 id="Win10的配置"><a href="#Win10的配置" class="headerlink" title="Win10的配置"></a>Win10的配置</h2><p>对于<code>Windows10</code>，选择<code>VPN</code>的地方，可以直接进行如下设置<br><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-IPSec-VPN.png" srcset="/img/loading.gif" alt="Win10-IPSec-VPN"></p>
+<p>但是这个时候我连接失败了，通过抓包和查看<code>FortiGate1</code>的<code>debug log</code>以及支持的协商加密和认证算法，可以推测是因为<code>Win10</code>的加密算法都是<code>AES</code>和<code>DES3</code>，而<code>FortiGate</code>都是<code>DES</code>，所以一直协商失败，于是就需要配置<code>Win10</code>的<code>IPSec</code>属性</p>
+<p>在<code>高级安全 Windows Defender 防火墙</code>属性 - <code>IPSec</code>设置中，可以自定义设置<code>IPSec</code>用于建立安全连接的设置</p>
+<p>在自定义设置中，将密钥交换（主模式）、数据保护（快速模式）、身份验证方式均设置为高级，最主要的是为了能协商成功<br><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-IPSec-Setting-Main-Mode.png" srcset="/img/loading.gif" alt="Win10-IPSec-Setting-Main-Mode"><br><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-IPSec-Setting-Quick-Mode.png" srcset="/img/loading.gif" alt="Win10-IPSec-Setting-Quick-Mode"><br><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-IPSec-Setting-Auth.png" srcset="/img/loading.gif" alt="Win10-IPSec-Setting-Auth"></p>
+<p>然后还需要配置如下内容的连接安全规则，记得勾选使用<code>IPSec</code>隧道<br><img src="../../themes/fluid/source/img/FortiGate-IPsec-VPN-Setup/Win10-Defender-Security-Policy.png" srcset="/img/loading.gif" alt="Win10-Defender-Security-Policy"></p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/hwdsl2/setup-ipsec-vpn/tree/master">https://github.com/hwdsl2/setup-ipsec-vpn/tree/master</a></p>
+</blockquote>
+<p><strong>DHCP NAT配置</strong></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://handbook.fortinet.com.cn/%E7%AD%96%E7%95%A5%E4%B8%8E%E5%AF%B9%E8%B1%A1/%E5%8D%95%E7%BA%BF%E8%B7%AF%E4%B8%8A%E7%BD%91%E9%85%8D%E7%BD%AE/DHCP%E7%BA%BF%E8%B7%AF%E4%B8%8A%E7%BD%91%E9%85%8D%E7%BD%AE.html">https://handbook.fortinet.com.cn/策略与对象/单线路上网配置/DHCP线路上网配置.html</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/meigang2012/article/details/118978718">https://blog.csdn.net/meigang2012/article/details/118978718</a></p>
+</blockquote>
+<p><strong>IPSec VPN配置</strong></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://handbook.fortinet.com.cn/VPN%E6%8A%80%E6%9C%AF/%E7%B3%BB%E7%BB%9F%E5%8E%9F%E7%94%9F%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%8E%A5%E5%85%A5/Windows%E7%B3%BB%E7%BB%9F/Windows_IKEv1.html">https://handbook.fortinet.com.cn/VPN技术/系统原生客户端接入/Windows系统/Windows_IKEv1.html</a></p>
+</blockquote>
+<p><strong>Win10配置</strong></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44484541/article/details/130057300">https://blog.csdn.net/qq_44484541/article/details/130057300</a></p>
+</blockquote>
+<p><strong>后续抓包解密</strong></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/rfc2544/article/details/121063565">https://blog.csdn.net/rfc2544/article/details/121063565</a><br><a target="_blank" rel="noopener" href="https://www.golinuxcloud.com/wireshark-decrypt-ipsec-packets-isakmp-esp/">https://www.golinuxcloud.com/wireshark-decrypt-ipsec-packets-isakmp-esp/</a></p>
+</blockquote>
+<p><strong>IPSec VPN报文</strong></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://cshihong.github.io/2019/04/03/IPSec-VPN%E4%B9%8BIKE%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3">https://cshihong.github.io/2019/04/03/IPSec-VPN之IKE协议详解</a><br><a target="_blank" rel="noopener" href="https://handbook.fortinet.com.cn/VPN%E6%8A%80%E6%9C%AF/IPSec_VPN/IPSec_VPN%E5%8E%9F%E7%90%86.html">https://handbook.fortinet.com.cn/VPN技术/IPSec_VPN/IPSec_VPN原理.html</a></p>
+</blockquote>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/setup/">setup</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/FortiGate/">FortiGate</a>
+                    
+                      <a class="hover-with-bg" href="/tags/vpn/">vpn</a>
+                    
+                      <a class="hover-with-bg" href="/tags/IPsec/">IPsec</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/11/20/SMB%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SMB 环境搭建</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/08/29/BGP%E5%8D%8F%E8%AE%AE%E6%A0%BC%E5%BC%8F%E8%AE%B0%E5%BD%95/">
+                        <span class="hidden-mobile">BGP协议格式记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "FortiGate IPsec VPN 搭建&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
