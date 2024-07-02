@@ -106,7 +106,7 @@ This field contains a list of optional parameters, in which each parameter is en
 
 其中`Capability-Code`可为如下的值
 
-![BGP-Open-Capability-Codes.png](../../themes/fluid/source/img/BGP-Format/BGP-Open-Capability-Codes.png)
+![BGP-Open-Capability-Codes.png](/img/BGP-Format/BGP-Open-Capability-Codes.png)
 [=> IANA-Capability-Codes](https://www.iana.org/assignments/capability-codes/capability-codes.xhtml)
 
 整个结构如下
@@ -463,7 +463,7 @@ The Capability Value field consists of a list of capability codes (one-octet for
 
 `Attr. Type Code`值如下
 
-![BGP-Update-Path-Attribute](../../themes/fluid/source/img/BGP-Format/BGP-Update-Path-Attribute.png)
+![BGP-Update-Path-Attribute](/img/BGP-Format/BGP-Update-Path-Attribute.png)
 
 整个结构如下
 ```mermaid
