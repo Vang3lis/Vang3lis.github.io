@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>IDA8.4迁移到IDA9.0 i64 bug</title>
+    <link href="/2025/02/20/IDA8.4%E8%BF%81%E7%A7%BB%E5%88%B0IDA9.0%20i64%20bug/"/>
+    <url>/2025/02/20/IDA8.4%E8%BF%81%E7%A7%BB%E5%88%B0IDA9.0%20i64%20bug/</url>
+    
+    <content type="html"><![CDATA[<h2 id="记录"><a href="#记录" class="headerlink" title="记录"></a>记录</h2><p>IDA8.4迁移到IDA9.0时，database的<code>view&#39;s history</code>好像会迁移出一点问题，在按<code>Esc</code>的时候会出现如下报错</p><pre><code class="hljs scala"><span class="hljs-type">Navigation</span> failed. <span class="hljs-type">This</span> can happen <span class="hljs-keyword">if</span> the view<span class="hljs-symbol">&#x27;s</span> history was corrupted. <span class="hljs-type">If</span> you suspect <span class="hljs-keyword">this</span> is a bug, please send <span class="hljs-keyword">this</span> database to &lt;support<span class="hljs-meta">@hex</span>-rays.com&gt;</code></pre><p>解决办法就是，在<code>IDA9.0</code>中，不停的往<code>view&#39;s history</code>里面堆<code>history</code>，这样就不会在<code>Esc</code>显示报错了</p><pre><code class="hljs python"><span class="hljs-keyword">import</span> ida_kernwin<span class="hljs-keyword">import</span> idaapi<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> range(<span class="hljs-number">0x10000</span>):    ida_kernwin.ea_viewer_history_push_and_jump(ida_kernwin.get_current_viewer(), idaapi.get_name_ea(<span class="hljs-number">0</span>, <span class="hljs-string">&quot;main&quot;</span>) , <span class="hljs-number">0</span>, i, <span class="hljs-number">0</span>)</code></pre><p>力大砖飞，只要我塞的<code>history</code>够多，这样<code>Esc</code>就按不到报错位置🤣</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>api</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>IDA</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>FortiGate 环境搭建 7.2.7</title>
     <link href="/2024/03/14/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.7/"/>
     <url>/2024/03/14/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.7/</url>

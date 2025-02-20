@@ -17,10 +17,20 @@
   <meta name="description" content="">
   <meta name="author" content="Vang3lis">
   <meta name="keywords" content="">
-  <title>归档 - Vang3lis&#39;s Blog</title>
+  <title>IDA8.4迁移到IDA9.0 i64 bug - Vang3lis&#39;s Blog</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+  
+
+  
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
@@ -43,7 +53,7 @@
 
 
 <body>
-  <header style="height: 60vh;">
+  <header style="height: 70vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -159,6 +169,40 @@
             </span>
 
             
+              
+  <div class="mt-3 post-meta">
+    <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+    <time datetime="2025-02-20 11:02" pubdate>
+      2025年2月20日 上午
+    </time>
+  </div>
+
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      146 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      2
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
           </div>
 
           
@@ -169,37 +213,94 @@
 
   <main>
     
-      <div class="container nopadding-md">
-        <div class="py-5" id="board"
-          >
-          
-          <div class="container">
-            <div class="row">
-              <div class="col-12 col-md-10 m-auto">
-                
-
-<div class="list-group">
-  <p class="h4">共计 17 篇文章</p>
-  <hr>
-  
-    
       
-      <p class="h5">2022</p>
-    
-    <a href="/2022/10/22/CVE-2022-37696%20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="list-group-item list-group-item-action">
-      <span class="archive-post-title">CVE-2022-37696 漏洞复现</span>
-      <time style="float: right;">10-22</time>
-    </a>
-  
-</div>
 
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">IDA8.4迁移到IDA9.0 i64 bug</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <h2 id="记录"><a href="#记录" class="headerlink" title="记录"></a>记录</h2><p>IDA8.4迁移到IDA9.0时，database的<code>view&#39;s history</code>好像会迁移出一点问题，在按<code>Esc</code>的时候会出现如下报错</p>
+<pre><code class="hljs scala"><span class="hljs-type">Navigation</span> failed. <span class="hljs-type">This</span> can happen <span class="hljs-keyword">if</span> the view<span class="hljs-symbol">&#x27;s</span> history was corrupted. <span class="hljs-type">If</span> you suspect <span class="hljs-keyword">this</span> is a bug, please send <span class="hljs-keyword">this</span> database to &lt;support<span class="hljs-meta">@hex</span>-rays.com&gt;</code></pre>
 
+<p>解决办法就是，在<code>IDA9.0</code>中，不停的往<code>view&#39;s history</code>里面堆<code>history</code>，这样就不会在<code>Esc</code>显示报错了</p>
+<pre><code class="hljs python"><span class="hljs-keyword">import</span> ida_kernwin
+<span class="hljs-keyword">import</span> idaapi
+<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> range(<span class="hljs-number">0x10000</span>):
+    ida_kernwin.ea_viewer_history_push_and_jump(ida_kernwin.get_current_viewer(), idaapi.get_name_ea(<span class="hljs-number">0</span>, <span class="hljs-string">&quot;main&quot;</span>) , <span class="hljs-number">0</span>, i, <span class="hljs-number">0</span>)</code></pre>
 
-              </div>
+<p>力大砖飞，只要我塞的<code>history</code>够多，这样<code>Esc</code>就按不到报错位置🤣</p>
+
             </div>
-          </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/api/">api</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/IDA/">IDA</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/14/FortiGate%20%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%207.2.7/">
+                        <span class="hidden-mobile">FortiGate 环境搭建 7.2.7</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
         </div>
       </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
     
   </main>
 
@@ -277,6 +378,31 @@
 
 
 
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
 
 
   <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
@@ -284,7 +410,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "归档&nbsp;",
+        "IDA8.4迁移到IDA9.0 i64 bug&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,
@@ -299,6 +425,21 @@
 
 
 
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
 
 
   <script  src="/js/local-search.js" ></script>
@@ -312,6 +453,20 @@
   </script>
 
 
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
 
 
 
