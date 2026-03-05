@@ -188,6 +188,54 @@
     
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
+        <a href="/2022/10/22/CVE-2022-37696%20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE-2022-37696 漏洞复现</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/10/22/CVE-2022-37696%20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+          
+          
+            
+          
+          环境虚拟机：Win10 21h2 19044.1889
+物理机：Win10
+debugger：windbg preview
+compiler：vs2022
+
+环境我使用的是Win10 21h2官方8月的版本
+简述漏洞在blf文件Base Log Record区域的cbSymbolZone字段的检测被绕过，从而导致畸形的cbSymbolZone（即越界的cbSymbolZone）可以被使用，从而可以
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-10-22 14:22" pubdate>
+              2022-10-22
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/windows-kernel/">windows kernel</a>
+            
+              <a href="/tags/clfs/">clfs</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
         <a href="/2022/09/13/CVE-2021-43224%20%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE-2021-43224 漏洞复现</a>
       </h1>
 
